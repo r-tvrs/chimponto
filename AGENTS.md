@@ -63,3 +63,13 @@ Leia antes de implementar qualquer coisa:
 | `pnpm test:e2e`                                | Playwright (Chromium + WebKit, 360 px)            |
 | `pnpm lint` · `pnpm typecheck` · `pnpm format` | Qualidade                                         |
 | `pnpm dlx supabase start` · `supabase test db` | Banco local (Docker) e testes pgTAP               |
+
+## Agent skills
+
+### Issue tracker
+
+Issues e specs ficam no GitHub Issues (`r-tvrs/chimponto`), via `gh` CLI. Ver `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: um `GLOSSARY.md` e `docs/adr/` na raiz. Ver `docs/agents/domain.md`.
