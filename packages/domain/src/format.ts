@@ -1,0 +1,28 @@
+// Formatação de durações e saldos (docs/07: saldo sempre com sinal + cor).
+
+export type BalanceTone = "positive" | "negative" | "neutral";
+
+/** 266 -> "4h26". Ignora o sinal. */
+export function formatDuration(minutes: number): string {
+  const abs = Math.abs(minutes);
+  return `${Math.floor(abs / 60)}h${String(abs % 60).padStart(2, "0")}`;
+}
+
+/** Sempre com sinal; o menos é U+2212. 80 -> "+1h20", -35 -> "−0h35", 0 -> "±0h00". */
+export function formatBalance(minutes: number): string {
+  const sign = minutes > 0 ? "+" : minutes < 0 ? "−" : "±";
+  return sign + formatDuration(minutes);
+}
+
+export function balanceTone(minutes: number): BalanceTone {
+  return minutes > 0 ? "positive" : minutes < 0 ? "negative" : "neutral";
+}
+
+/** Texto para leitores de tela: 80 -> "mais 1 hora e 20 minutos". */
+export function spokenBalance(minutes: number): string {
+  const abs = Math.abs(minutes);
+  const hours = Math.floor(abs / 60);
+  const mins = abs % 60;
+  const prefix = minutes > 0 ? "mais " : minutes < 0 ? "menos " : "";
+  return `${prefix}${hours} hora${hours === 1 ? "" : "s"} e ${mins} minuto${mins === 1 ? "" : "s"}`;
+}

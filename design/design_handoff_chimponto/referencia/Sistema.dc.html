@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./mascote.js"></script>
+<script src="./icons.js"></script>
+<style>
+:root{--background:oklch(0.985 0.008 90);--foreground:oklch(0.25 0.035 55);--card:oklch(1 0 0);--primary:oklch(0.865 0.165 92);--primary-foreground:oklch(0.25 0.035 55);--muted:oklch(0.955 0.014 85);--muted-foreground:oklch(0.48 0.03 60);--destructive:oklch(0.52 0.19 27);--destructive-foreground:oklch(0.985 0.008 90);--border:oklch(0.905 0.018 85);--input:oklch(0.87 0.02 85);--ring:oklch(0.62 0.13 80);--positive:oklch(0.5 0.13 150);--negative:oklch(0.52 0.19 27);--warning:oklch(0.52 0.14 58);--pending:oklch(0.5 0.12 305);--banana:oklch(0.865 0.165 92)}
+.dark{--background:oklch(0.185 0.012 60);--foreground:oklch(0.955 0.012 85);--card:oklch(0.225 0.014 60);--primary:oklch(0.865 0.165 92);--primary-foreground:oklch(0.22 0.03 55);--muted:oklch(0.27 0.016 60);--muted-foreground:oklch(0.74 0.025 75);--destructive:oklch(0.72 0.16 25);--destructive-foreground:oklch(0.185 0.012 60);--border:oklch(0.32 0.018 60);--input:oklch(0.38 0.02 60);--ring:oklch(0.8 0.14 88);--positive:oklch(0.78 0.15 150);--negative:oklch(0.72 0.16 25);--warning:oklch(0.8 0.13 72);--pending:oklch(0.76 0.1 305);--banana:oklch(0.865 0.165 92)}
+body{margin:0;background:oklch(0.97 0.01 85);font-family:Manrope,system-ui,sans-serif;color:oklch(0.25 0.035 55)}
+a{color:oklch(0.25 0.035 55);text-underline-offset:3px}
+a:hover{color:oklch(0.48 0.03 60)}
+</style>
+</helmet>
+<div data-screen-label="Sistema" style="max-width:1240px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-direction:column;gap:72px">
+
+  <header style="display:flex;flex-wrap:wrap;gap:28px;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:18px">
+      <img src="./icons/icon-192.png" alt="Ícone do Chimponto" style="width:72px;height:72px;border-radius:18px;display:block">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h1 style="margin:0;font:600 48px/1 Fredoka,sans-serif;letter-spacing:-0.01em">Chimponto</h1>
+        <span style="font:600 14px Manrope,sans-serif;color:var(--muted-foreground)">Sistema visual v1 · mascote Bolota · paleta Cacho</span>
+      </div>
+    </div>
+    <nav style="display:flex;flex-wrap:wrap;gap:6px">
+      <a href="#logo" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Logo e ícone</a>
+      <a href="#tipo" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Tipografia</a>
+      <a href="#tokens" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Tokens</a>
+      <a href="#mascote" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Mascote</a>
+      <a href="#icones" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Ícones</a>
+      <a href="#componentes" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Componentes</a>
+      <a href="#push" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);text-decoration:none">Notificações</a>
+      <a href="Telas.dc.html" style="font:700 13px Manrope,sans-serif;padding:8px 12px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);text-decoration:none">Ver telas →</a>
+    </nav>
+  </header>
+
+  <section id="logo" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Logo e ícone</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:680px;text-wrap:pretty">O ícone é o rosto da Bolota sobre banana. A folha no topo é o detalhe que sobrevive em 24 px. O logotipo é a palavra em Fredoka 600, sempre em foreground; o amarelo fica no ícone.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <div style="height:160px;border-radius:20px;background:var(--background);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:14px">
+        <img src="./icons/icon-192.png" alt="" style="width:56px;height:56px;border-radius:14px;display:block"><span style="font:600 38px/1 Fredoka,sans-serif;color:var(--foreground)">Chimponto</span>
+      </div>
+      <div class="dark" style="height:160px;border-radius:20px;background:var(--background);display:flex;align-items:center;justify-content:center;gap:14px">
+        <img src="./icons/icon-192.png" alt="" style="width:56px;height:56px;border-radius:14px;display:block"><span style="font:600 38px/1 Fredoka,sans-serif;color:var(--foreground)">Chimponto</span>
+      </div>
+      <div style="height:160px;border-radius:20px;background:var(--banana);display:flex;align-items:center;justify-content:center;gap:10px">
+        <div style="width:60px;height:60px"><x-import component-from-global-scope="mascote-chimp" variant="icone" style="width:60px;height:60px" hint-size="60px,60px"></x-import></div><span style="font:600 38px/1 Fredoka,sans-serif;color:oklch(0.25 0.035 55)">Chimponto</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px">
+      <div style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:28px;align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center"><img src="./icons/icon-512.png" alt="Ícone 512" style="width:180px;height:180px;display:block"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">512 · any</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center"><img src="./icons/icon-192.png" alt="Ícone 192" style="width:96px;height:96px;display:block"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">192 · any</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="position:relative;width:180px;height:180px"><img src="./icons/icon-maskable-512.png" alt="Ícone maskable" style="width:180px;height:180px;display:block"><div style="position:absolute;inset:18px;border-radius:50%;border:2px dashed oklch(0.25 0.035 55 / .55)"></div></div>
+          <span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">512 · maskable · zona segura 80%</span>
+        </div>
+      </div>
+      <div style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:18px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Máscaras do sistema</span>
+        <div style="display:flex;gap:16px;align-items:center">
+          <img src="./icons/icon-maskable-192.png" alt="" style="width:72px;height:72px;border-radius:50%;display:block">
+          <img src="./icons/icon-maskable-192.png" alt="" style="width:72px;height:72px;border-radius:30%;display:block">
+          <img src="./icons/icon-maskable-192.png" alt="" style="width:72px;height:72px;border-radius:16px;display:block">
+          <img src="./icons/icon-maskable-192.png" alt="" style="width:72px;height:72px;border-radius:50% 50% 50% 14px;display:block">
+        </div>
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Tamanhos pequenos</span>
+        <div style="display:flex;gap:16px;align-items:flex-end">
+          <img src="./icons/icon-192.png" alt="" style="width:48px;height:48px;display:block">
+          <img src="./icons/icon-192.png" alt="" style="width:32px;height:32px;display:block">
+          <img src="./icons/icon-192.png" alt="" style="width:24px;height:24px;display:block">
+          <img src="./icons/icon-192.png" alt="" style="width:16px;height:16px;display:block">
+          <span style="width:48px;height:48px;border-radius:12px;background:oklch(0.3 0.02 250);display:flex;align-items:center;justify-content:center"><img src="./icons/badge-96.png" alt="Ícone monocromático" style="width:24px;height:24px;display:block"></span>
+        </div>
+        <span style="font:500 12.5px/1.5 Manrope,sans-serif;color:var(--muted-foreground)">O último é o badge monocromático para a barra de status do Android.</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <div style="padding:20px 22px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Arquivos</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;font:700 13px ui-monospace,Menlo,monospace">
+          <a href="./icons/icon-192.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon-192.png</a>
+          <a href="./icons/icon-512.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon-512.png</a>
+          <a href="./icons/icon-maskable-192.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon-maskable-192.png</a>
+          <a href="./icons/icon-maskable-512.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon-maskable-512.png</a>
+          <a href="./icons/apple-touch-icon-180.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">apple-touch-icon-180.png</a>
+          <a href="./icons/badge-96.png" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">badge-96.png</a>
+          <a href="./icons/icon.svg" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon.svg</a>
+          <a href="./icons/icon-maskable.svg" download="" style="padding:8px 10px;border-radius:10px;background:var(--muted);text-decoration:none">icon-maskable.svg</a>
+        </div>
+      </div>
+      <pre style="margin:0;padding:20px 22px;border-radius:20px;background:oklch(0.23 0.02 60);color:oklch(0.93 0.015 85);font:500 12.5px/1.6 ui-monospace,'SF Mono',Menlo,monospace;overflow:auto;white-space:pre">"icons": [
+  { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+  { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+  { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+],
+"theme_color": "#F9CE32",
+"background_color": "#FBF8F1"</pre>
+    </div>
+  </section>
+
+  <section id="tipo" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Tipografia</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:680px;text-wrap:pretty">Fredoka dá a personalidade nos títulos. Manrope cuida de todo o resto, inclusive horas e dinheiro, sempre com tabular-nums. Números nunca usam Fredoka.</p></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <div style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Títulos · Fredoka 600</span>
+        <span style="font:600 56px/1 Fredoka,sans-serif">Hora do galho</span>
+        <span style="font:500 15px/1.5 Manrope,sans-serif;color:var(--muted-foreground)">Arredondada, amigável, legível a 20 px. Usar só de 18 px para cima.</span>
+      </div>
+      <div style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Texto e números · Manrope 500–800</span>
+        <span style="font:800 56px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-0.02em">+3h10</span>
+        <span style="font:500 15px/1.5 Manrope,sans-serif;color:var(--muted-foreground)">Geométrica, com algarismos tabulares de verdade (tnum).</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px">
+      <div style="padding:8px 24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column">
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:64px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">display</span><span style="font:800 40px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">−0h35</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Manrope 800 · 40/40</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:56px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">título 1</span><span style="font:600 28px/1 Fredoka,sans-serif">Período</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Fredoka 600 · 28/28</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:52px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">título 2</span><span style="font:600 21px/1.2 Fredoka,sans-serif">Cofre trancado</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Fredoka 600 · 20–22</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:52px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">número</span><span style="font:800 22px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">14:28 · R$ 2.874,49</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Manrope 800 · 18–26 · tnum</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:52px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">corpo</span><span style="font:500 15px/1.45 Manrope,sans-serif">Suas batidas ficam salvas aqui.</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Manrope 500–600 · 15/22</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:48px;border-bottom:1px solid var(--border)"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">apoio</span><span style="font:600 12.5px/1.3 Manrope,sans-serif;color:var(--muted-foreground)">de 8h48 · fecha na saída</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Manrope 600 · 12.5/16</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr) 150px;gap:16px;align-items:center;min-height:48px"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">rótulo</span><span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Proventos</span><span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Manrope 700 · 11 · caps</span></div>
+      </div>
+      <div style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:14px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Por que tabular-nums</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;font:800 22px/1.2 Manrope,sans-serif;font-variant-numeric:proportional-nums"><span style="font:700 11px Manrope,sans-serif;color:var(--negative);align-self:flex-start;margin-bottom:6px">proporcional ✗</span><span>11:11</span><span>08:48</span><span>+1h20</span><span>−0h35</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;font:800 22px/1.2 Manrope,sans-serif;font-variant-numeric:tabular-nums"><span style="font:700 11px Manrope,sans-serif;color:var(--positive);align-self:flex-start;margin-bottom:6px">tabular ✓</span><span>11:11</span><span>08:48</span><span>+1h20</span><span>−0h35</span></div>
+        </div>
+        <span style="font:500 12.5px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Colunas de horas e valores alinham, e o relógio não "pula" quando o minuto muda. O sinal de menos é o caractere − (U+2212), da mesma largura do +.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="tokens" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Tokens · shadcn/ui</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:720px;text-wrap:pretty">Cole em <code style="font:600 13px ui-monospace,Menlo,monospace">globals.css</code>. Os tokens positive, negative, warning, pending e banana são extras e entram no Tailwind pelo bloco <code style="font:600 13px ui-monospace,Menlo,monospace">@theme inline</code>. Todos os pares de texto passam WCAG AA; os números estão em <a href="Identidade%20Visual.dc.html#1d">1d</a>.</p></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <div style="padding:18px;border-radius:20px;background:var(--background);border:1px solid var(--border);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--primary)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">primary</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--positive)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">positive</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--negative)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">negative</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--warning)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">warning</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--pending)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">pending</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--foreground)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">foreground</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--muted-foreground)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">muted-fg</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--muted);box-shadow:inset 0 0 0 1px var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">muted</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">card</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">border</span></div>
+      </div>
+      <div class="dark" style="padding:18px;border-radius:20px;background:var(--background);color:var(--foreground);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--primary)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">primary</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--positive)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">positive</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--negative)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">negative</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--warning)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">warning</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--pending)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">pending</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--foreground)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">foreground</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--muted-foreground)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">muted-fg</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--muted);box-shadow:inset 0 0 0 1px var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">muted</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">card</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="height:48px;border-radius:12px;background:var(--border)"></span><span style="font:700 11px ui-monospace,Menlo,monospace">border</span></div>
+      </div>
+    </div>
+    <pre style="margin:0;padding:22px 24px;border-radius:20px;background:oklch(0.23 0.02 60);color:oklch(0.93 0.015 85);font:500 12.5px/1.6 ui-monospace,'SF Mono',Menlo,monospace;overflow:auto;white-space:pre;max-height:560px">:root {
+  --radius: 1rem;
+  --background: oklch(0.985 0.008 90);
+  --foreground: oklch(0.25 0.035 55);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.035 55);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.035 55);
+  --primary: oklch(0.865 0.165 92);            /* banana: só preenchimento */
+  --primary-foreground: oklch(0.25 0.035 55);
+  --secondary: oklch(0.955 0.014 85);
+  --secondary-foreground: oklch(0.25 0.035 55);
+  --muted: oklch(0.955 0.014 85);
+  --muted-foreground: oklch(0.48 0.03 60);
+  --accent: oklch(0.955 0.014 85);
+  --accent-foreground: oklch(0.25 0.035 55);
+  --destructive: oklch(0.52 0.19 27);
+  --border: oklch(0.905 0.018 85);
+  --input: oklch(0.87 0.02 85);
+  --ring: oklch(0.62 0.13 80);
+  --positive: oklch(0.5 0.13 150);
+  --positive-foreground: oklch(0.985 0.008 90);
+  --negative: oklch(0.52 0.19 27);
+  --negative-foreground: oklch(0.985 0.008 90);
+  --warning: oklch(0.52 0.14 58);
+  --warning-foreground: oklch(0.985 0.008 90);
+  --pending: oklch(0.5 0.12 305);
+  --pending-foreground: oklch(0.985 0.008 90);
+  --banana: oklch(0.865 0.165 92);
+}
+
+.dark {
+  --background: oklch(0.185 0.012 60);
+  --foreground: oklch(0.955 0.012 85);
+  --card: oklch(0.225 0.014 60);
+  --card-foreground: oklch(0.955 0.012 85);
+  --popover: oklch(0.225 0.014 60);
+  --popover-foreground: oklch(0.955 0.012 85);
+  --primary: oklch(0.865 0.165 92);
+  --primary-foreground: oklch(0.22 0.03 55);
+  --secondary: oklch(0.27 0.016 60);
+  --secondary-foreground: oklch(0.955 0.012 85);
+  --muted: oklch(0.27 0.016 60);
+  --muted-foreground: oklch(0.74 0.025 75);
+  --accent: oklch(0.27 0.016 60);
+  --accent-foreground: oklch(0.955 0.012 85);
+  --destructive: oklch(0.72 0.16 25);
+  --border: oklch(0.32 0.018 60);
+  --input: oklch(0.38 0.02 60);
+  --ring: oklch(0.8 0.14 88);
+  --positive: oklch(0.78 0.15 150);
+  --positive-foreground: oklch(0.185 0.012 60);
+  --negative: oklch(0.72 0.16 25);
+  --negative-foreground: oklch(0.185 0.012 60);
+  --warning: oklch(0.8 0.13 72);
+  --warning-foreground: oklch(0.185 0.012 60);
+  --pending: oklch(0.76 0.1 305);
+  --pending-foreground: oklch(0.185 0.012 60);
+  --banana: oklch(0.865 0.165 92);
+}
+
+@theme inline {
+  --font-display: "Fredoka", ui-rounded, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-negative: var(--negative);
+  --color-negative-foreground: var(--negative-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-pending: var(--pending);
+  --color-pending-foreground: var(--pending-foreground);
+  --color-banana: var(--banana);
+}
+
+/* badges com fundo tingido: bg-positive/12 text-positive (passa AA nos dois temas) */
+body { font-variant-numeric: tabular-nums; }</pre>
+  </section>
+
+  <section id="mascote" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Mascote · Bolota</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:720px;text-wrap:pretty">Só círculos e elipses, sem contorno, um tom de sombra por material. Sempre sobre um círculo banana, que separa a pelagem marrom do fundo escuro. Abaixo de 40 px, usar o ícone (só o rosto). Cada estado é um SVG gerado por <code style="font:600 13px ui-monospace,Menlo,monospace">mascote.js</code>.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
+      <sc-for list="{{ moods }}" as="m" hint-placeholder-count="12">
+        <div style="padding:18px 16px 16px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+          <div style="width:128px;height:128px;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden"><x-import component-from-global-scope="mascote-chimp" variant="c" mood="{{ m.id }}" style="width:108px;height:121px" hint-size="108px,121px"></x-import></div>
+          <span style="font:600 17px/1.2 Fredoka,sans-serif">{{ m.title }}</span>
+          <span style="font:500 12.5px/1.4 Manrope,sans-serif;color:var(--muted-foreground)">{{ m.desc }}</span>
+          <span style="font:600 11px ui-monospace,Menlo,monospace;color:var(--muted-foreground);padding:3px 7px;border-radius:6px;background:var(--muted)">mood="{{ m.id }}"</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#6B4330;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">pelagem<br>#6B4330</span></div>
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#F3CDA6;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">rosto<br>#F3CDA6</span></div>
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#FFD23F;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">banana<br>#FFD23F</span></div>
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#46A86F;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">folha<br>#46A86F</span></div>
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#E2574C;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">crachá<br>#E2574C</span></div>
+      <div style="padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:#2B1B13;flex:none"></span><span style="font:600 12px/1.3 ui-monospace,Menlo,monospace">olhos<br>#2B1B13</span></div>
+    </div>
+  </section>
+
+  <section id="icones" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Ícones e indicador de progresso</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:720px;text-wrap:pretty">Interface 100% lucide-react: traço 2, 20 px por padrão (24 na ação principal, 16 em linhas densas), sempre currentColor. O mascote nunca substitui um ícone de função. A única peça própria é o cacho, que mostra as batidas do dia.</p></div>
+    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px">
+      <div style="padding:20px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px">
+        <sc-for list="{{ icons }}" as="ic" hint-placeholder-count="20">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 6px;border-radius:12px;text-align:center">
+            <x-import component-from-global-scope="lc-icon" icon="{{ ic.icon }}" size="24" hint-size="24px,24px"></x-import>
+            <span style="font:700 12px/1.2 Manrope,sans-serif">{{ ic.use }}</span>
+            <span style="font:500 10.5px/1.2 ui-monospace,Menlo,monospace;color:var(--muted-foreground)">{{ ic.icon }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:20px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:14px">
+        <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Cacho · 0 a 4 batidas</span>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;color:var(--muted-foreground)">
+          <x-import component-from-global-scope="cacho-banana" n="0" size="48" hint-size="48px,48px"></x-import>
+          <x-import component-from-global-scope="cacho-banana" n="1" size="48" hint-size="48px,48px"></x-import>
+          <x-import component-from-global-scope="cacho-banana" n="2" size="48" hint-size="48px,48px"></x-import>
+          <x-import component-from-global-scope="cacho-banana" n="3" size="48" hint-size="48px,48px"></x-import>
+          <x-import component-from-global-scope="cacho-banana" n="4" size="48" hint-size="48px,48px"></x-import>
+        </div>
+        <span style="font:500 12.5px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Sempre acompanhado do texto "2 de 4". As bananas vazias usam currentColor, então funcionam nos dois temas.</span>
+        <div class="dark" style="padding:14px;border-radius:14px;background:var(--card);color:var(--muted-foreground);display:flex;align-items:center;gap:10px">
+          <x-import component-from-global-scope="cacho-banana" n="3" size="40" hint-size="40px,40px"></x-import><span style="font:700 13px Manrope,sans-serif;color:var(--foreground)">3 de 4</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="componentes" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Componentes · variações do shadcn</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:720px;text-wrap:pretty">Mesmos componentes do shadcn/ui com variantes novas. Alvo de toque mínimo de 44 px; a ação principal tem 56–60 px e fica na metade de baixo da tela.</p></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <sc-for list="{{ themes }}" as="th" hint-placeholder-count="2">
+        <div class="{{ th.cls }}" style="padding:22px;border-radius:20px;background:var(--background);color:var(--foreground);border:1px solid var(--border);display:flex;flex-direction:column;gap:18px">
+          <span style="font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">{{ th.label }}</span>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Button size="ponto"</span>
+            <div style="height:60px;border-radius:18px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))"><x-import component-from-global-scope="lc-icon" icon="fingerprint" size="24" hint-size="24px,24px"></x-import><span style="font:800 17px Manrope,sans-serif">Bater ponto</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Button variant</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <span style="height:44px;padding:0 16px;border-radius:14px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;font:800 14px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">default</span>
+              <span style="height:44px;padding:0 16px;border-radius:14px;background:var(--muted);color:var(--foreground);display:flex;align-items:center;font:700 14px Manrope,sans-serif">secondary</span>
+              <span style="height:44px;padding:0 16px;border-radius:14px;background:var(--card);border:1px solid var(--input);color:var(--foreground);display:flex;align-items:center;font:700 14px Manrope,sans-serif">outline</span>
+              <span style="height:44px;padding:0 12px;border-radius:14px;color:var(--foreground);display:flex;align-items:center;font:700 14px Manrope,sans-serif;text-decoration:underline;text-underline-offset:3px">link</span>
+              <span style="height:44px;padding:0 16px;border-radius:14px;background:var(--destructive);color:var(--destructive-foreground);display:flex;align-items:center;font:800 14px Manrope,sans-serif">destructive</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">Badge variant · Saldo</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;font:700 12px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">
+              <span style="padding:7px 10px;border-radius:999px;background:color-mix(in oklab,var(--positive) 12%,var(--card));color:var(--positive)">+1h20</span>
+              <span style="padding:7px 10px;border-radius:999px;background:color-mix(in oklab,var(--negative) 12%,var(--card));color:var(--negative)">−0h35</span>
+              <span style="padding:7px 10px;border-radius:999px;background:var(--muted);color:var(--muted-foreground)">±0h00</span>
+              <span style="padding:7px 10px;border-radius:999px;background:color-mix(in oklab,var(--warning) 12%,var(--card));color:var(--warning)">Almoço curto</span>
+              <span style="padding:7px 10px;border-radius:999px;background:color-mix(in oklab,var(--pending) 12%,var(--card));color:var(--pending)">Sem registro</span>
+              <span style="padding:7px 10px;border-radius:999px;background:var(--primary);color:var(--primary-foreground)">Hoje</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center">
+            <div style="height:52px;border-radius:14px;border:1px solid var(--input);background:var(--card);display:flex;align-items:center;padding:0 16px;font:600 16px Manrope,sans-serif;color:var(--muted-foreground)">Input</div>
+            <span style="width:46px;height:28px;box-sizing:border-box;border-radius:999px;background:var(--foreground);position:relative"><span style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:var(--card)"></span></span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:var(--muted)">
+            <span style="height:40px;border-radius:11px;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope,sans-serif">Tabs ativa</span>
+            <span style="height:40px;display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope,sans-serif;color:var(--muted-foreground)">inativa</span>
+          </div>
+          <div style="display:flex;justify-content:space-around;padding:8px 0;border-radius:16px;background:var(--card);border:1px solid var(--border)">
+            <span style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:56px;height:30px;border-radius:999px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="clock" size="20" hint-size="20px,20px"></x-import></span><span style="font:800 11.5px Manrope,sans-serif">Hoje</span></span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted-foreground)"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="calendar-days" size="20" hint-size="20px,20px"></x-import></span><span style="font:600 11.5px Manrope,sans-serif">Período</span></span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted-foreground)"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="wallet" size="20" hint-size="20px,20px"></x-import></span><span style="font:600 11.5px Manrope,sans-serif">Salário</span></span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted-foreground)"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="settings" size="20" hint-size="20px,20px"></x-import></span><span style="font:600 11.5px Manrope,sans-serif">Ajustes</span></span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <pre style="margin:0;padding:22px 24px;border-radius:20px;background:oklch(0.23 0.02 60);color:oklch(0.93 0.015 85);font:500 12.5px/1.6 ui-monospace,'SF Mono',Menlo,monospace;overflow:auto;white-space:pre">// components/ui/button.tsx (trecho do cva)
+variant: {
+  default: "bg-primary text-primary-foreground font-extrabold
+            shadow-[inset_0_-3px_0_theme(colors.primary/70%)]
+            active:translate-y-px",
+  secondary: "bg-muted text-foreground",
+  outline: "border border-input bg-card",
+  link: "underline underline-offset-4",
+  destructive: "bg-destructive text-white",
+},
+size: {
+  default: "h-11 px-4 rounded-[14px]",   // 44 px
+  lg: "h-14 rounded-2xl text-base",      // 56 px
+  ponto: "h-15 w-full rounded-[18px] text-[17px] gap-3",
+  icon: "size-11 rounded-xl",
+}</pre>
+      <pre style="margin:0;padding:22px 24px;border-radius:20px;background:oklch(0.23 0.02 60);color:oklch(0.93 0.015 85);font:500 12.5px/1.6 ui-monospace,'SF Mono',Menlo,monospace;overflow:auto;white-space:pre">// components/ui/badge.tsx (trecho do cva)
+variant: {
+  positive: "bg-positive/12 text-positive",
+  negative: "bg-negative/12 text-negative",
+  warning:  "bg-warning/12 text-warning",
+  pending:  "bg-pending/12 text-pending",
+  neutral:  "bg-muted text-muted-foreground",
+  today:    "bg-primary text-primary-foreground",
+}
+
+// components/saldo.tsx
+// sempre sinal + cor; − é U+2212
+export function Saldo({ min }: { min: number }) {
+  const s = min > 0 ? "+" : min &lt; 0 ? "−" : "±";
+  ...
+}</pre>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;font:500 13px/1.5 Manrope,sans-serif;color:var(--muted-foreground)">
+      <div style="padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--border)"><b style="color:var(--foreground)">Sheet</b> · bater ponto e OCR. Alça, título em Fredoka, fechar com 44 px, ação principal no fim.</div>
+      <div style="padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--border)"><b style="color:var(--foreground)">Switch</b> · ligado usa foreground, não amarelo: banana sobre branco não tem contraste de objeto (3:1).</div>
+      <div style="padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--border)"><b style="color:var(--foreground)">Dialog</b> · só para ações destrutivas (excluir conta). Cancelar à esquerda.</div>
+      <div style="padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--border)"><b style="color:var(--foreground)">Toast</b> · foreground invertido com ícone banana. Some em 2,6 s.</div>
+    </div>
+  </section>
+
+  <section id="push" style="display:flex;flex-direction:column;gap:20px;scroll-margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font:600 30px/1 Fredoka,sans-serif">Notificações push</h2><p style="margin:0;font:500 15px/1.55 Manrope,sans-serif;color:var(--muted-foreground);max-width:720px;text-wrap:pretty">Disparadas 10 min antes do horário previsto. O título traz a graça; o corpo traz o horário, sempre. No iPhone, só funcionam com o app instalado na tela de início.</p></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+      <div style="padding:22px;border-radius:24px;background:linear-gradient(160deg,oklch(0.42 0.05 200),oklch(0.3 0.04 250));display:flex;flex-direction:column;gap:10px">
+        <span style="font:600 12px Manrope,sans-serif;color:oklch(1 0 0 / .8)">iPhone · tela bloqueada</span>
+        <div style="display:flex;gap:12px;padding:12px 14px;border-radius:20px;background:oklch(0.97 0.005 85 / .88);color:oklch(0.2 0.01 60);align-items:flex-start">
+          <img src="./icons/icon-192.png" alt="" style="width:38px;height:38px;border-radius:9px;display:block;flex:none">
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="display:flex;justify-content:space-between;font:600 12.5px Manrope,sans-serif;opacity:.7"><span>Chimponto</span><span>14:18</span></div>
+            <span style="font:800 14.5px/1.3 Manrope,sans-serif">Hora de voltar pro galho! 🍌</span>
+            <span style="font:500 14px/1.35 Manrope,sans-serif;font-variant-numeric:tabular-nums">Bata o ponto às 14:28 — faltam 10 min.</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;padding:12px 14px;border-radius:20px;background:oklch(0.97 0.005 85 / .88);color:oklch(0.2 0.01 60);align-items:flex-start">
+          <img src="./icons/icon-192.png" alt="" style="width:38px;height:38px;border-radius:9px;display:block;flex:none">
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="display:flex;justify-content:space-between;font:600 12.5px Manrope,sans-serif;opacity:.7"><span>Chimponto</span><span>18:40</span></div>
+            <span style="font:800 14.5px/1.3 Manrope,sans-serif">Mochila nas costas? 🎒</span>
+            <span style="font:500 14px/1.35 Manrope,sans-serif;font-variant-numeric:tabular-nums">Sua saída prevista é 18:50. Bata o ponto antes de ir.</span>
+          </div>
+        </div>
+      </div>
+      <div style="padding:22px;border-radius:24px;background:oklch(0.24 0.015 250);display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font:600 12px Manrope,sans-serif;color:oklch(1 0 0 / .8)"><span>Android · aba de notificações</span><img src="./icons/badge-96.png" alt="Badge monocromático" style="width:16px;height:16px;display:block"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:22px;background:oklch(0.33 0.015 250);color:oklch(0.96 0.005 250)">
+          <div style="display:flex;align-items:center;gap:8px;font:600 12px Manrope,sans-serif;opacity:.8"><img src="./icons/badge-96.png" alt="" style="width:14px;height:14px;display:block">Chimponto · agora</div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font:800 14.5px/1.3 Manrope,sans-serif">Hora de voltar pro galho! 🍌</span><span style="font:500 14px/1.35 Manrope,sans-serif;font-variant-numeric:tabular-nums;opacity:.85">Bata o ponto às 14:28 — faltam 10 min.</span></div>
+            <img src="./icons/icon-192.png" alt="" style="width:40px;height:40px;border-radius:50%;display:block;flex:none">
+          </div>
+          <div style="display:flex;gap:18px;padding-top:4px;font:700 13.5px Manrope,sans-serif;color:oklch(0.88 0.12 92)"><span>Bater agora</span><span>Lembrar em 5 min</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="border-radius:20px;background:var(--card);border:1px solid var(--border);overflow:hidden">
+      <div style="display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:16px;padding:12px 20px;font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);background:var(--muted)"><span>Gatilho</span><span>Título</span><span>Corpo</span><span>Ações (Android)</span></div>
+      <div style="display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:16px;padding:14px 20px;font:600 13.5px/1.45 Manrope,sans-serif;border-top:1px solid var(--border)"><span style="color:var(--muted-foreground)">volta prevista − 10 min</span><span>Hora de voltar pro galho! 🍌</span><span style="font-variant-numeric:tabular-nums">Bata o ponto às {hora} — faltam 10 min.</span><span>Bater agora · Lembrar em 5 min</span></div>
+      <div style="display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:16px;padding:14px 20px;font:600 13.5px/1.45 Manrope,sans-serif;border-top:1px solid var(--border)"><span style="color:var(--muted-foreground)">saída prevista − 10 min</span><span>Mochila nas costas? 🎒</span><span style="font-variant-numeric:tabular-nums">Sua saída prevista é {hora}. Bata o ponto antes de ir.</span><span>Bater agora · Lembrar em 5 min</span></div>
+      <div style="padding:12px 20px;border-top:1px solid var(--border);font:500 12.5px/1.5 Manrope,sans-serif;color:var(--muted-foreground)">Ícone: <code style="font:600 12px ui-monospace,Menlo,monospace">icon-192.png</code> · badge: <code style="font:600 12px ui-monospace,Menlo,monospace">badge-96.png</code> (monocromático) · "Bater agora" abre o sheet já com a hora atual; nada é registrado sem confirmação.</div>
+    </div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      moods: [
+        ['feliz', 'Saldo positivo', 'Segurando o cacho'], ['preocupado', 'Saldo negativo', 'Correndo atrasado'], ['tranquilo', 'Saldo zerado', 'Joinha'],
+        ['almoco', 'Volta do almoço', 'Terminando a banana'], ['saida', 'Hora da saída', 'Pegando a mochila'], ['cofre', 'Cofre trancado', 'Guardando o baú'],
+        ['contando', 'Cofre aberto', 'Contando bananas'], ['pendente', 'Dia incompleto', 'Coçando a cabeça'], ['offline', 'Offline', 'Sem sinal na selva'],
+        ['boasvindas', 'Primeiro acesso', 'Acenando'], ['lupa', 'Lendo comprovante', 'Com lupa'], ['erro', 'Erro', 'Casca de banana']
+      ].map(([id, title, desc]) => ({ id, title, desc })),
+      icons: [
+        ['clock', 'Hoje'], ['calendar-days', 'Período'], ['wallet', 'Salário'], ['settings', 'Ajustes'], ['fingerprint', 'Bater ponto'],
+        ['camera', 'Comprovante'], ['scan-line', 'Leitura OCR'], ['pencil', 'Editar batida'], ['triangle-alert', 'Alerta'], ['cloud-off', 'Offline / fila'],
+        ['lock', 'Cofre trancado'], ['lock-open', 'Cofre aberto'], ['shield-check', 'Criptografia'], ['key-round', 'Recuperação'], ['bell', 'Lembretes'],
+        ['building-2', 'Empresa'], ['user-plus', 'Convidar'], ['download', 'Exportar'], ['trash-2', 'Excluir'], ['banana', 'Toast / sucesso']
+      ].map(([icon, use]) => ({ icon, use })),
+      themes: [{ cls: '', label: 'Claro' }, { cls: 'dark', label: 'Escuro' }]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Assets e exports de design não contêm segredos"
+paths = ['''design/.*\.zip$''', '''pnpm-lock\.yaml$''']

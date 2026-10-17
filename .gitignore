@@ -1,0 +1,30 @@
+# Segredos
+.env
+.env.*
+!.env.example
+*.local.*
+
+# Dados reais (comprovantes, holerites, dumps) — nunca commitar
+private/
+*.dump
+*.sql.gz
+backup*/
+
+# Build / deps
+node_modules/
+dist/
+.turbo/
+coverage/
+supabase/.temp/
+.DS_Store
+
+# Exports brutos do Claude Design (conteúdo já descompactado em design/)
+design/*.zip
+
+# Testes
+playwright-report/
+test-results/
+apps/web/dist/
+
+# Config local do Claude Code
+.claude/settings.local.json

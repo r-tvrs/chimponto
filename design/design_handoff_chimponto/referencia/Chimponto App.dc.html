@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./mascote.js"></script>
+<script src="./icons.js"></script>
+<style>
+:root{color-scheme:light;--radius:1rem;--background:oklch(0.985 0.008 90);--foreground:oklch(0.25 0.035 55);--card:oklch(1 0 0);--card-foreground:oklch(0.25 0.035 55);--popover:oklch(1 0 0);--popover-foreground:oklch(0.25 0.035 55);--primary:oklch(0.865 0.165 92);--primary-foreground:oklch(0.25 0.035 55);--secondary:oklch(0.955 0.014 85);--secondary-foreground:oklch(0.25 0.035 55);--muted:oklch(0.955 0.014 85);--muted-foreground:oklch(0.48 0.03 60);--accent:oklch(0.955 0.014 85);--accent-foreground:oklch(0.25 0.035 55);--destructive:oklch(0.52 0.19 27);--destructive-foreground:oklch(0.985 0.008 90);--border:oklch(0.905 0.018 85);--input:oklch(0.87 0.02 85);--ring:oklch(0.62 0.13 80);--positive:oklch(0.5 0.13 150);--positive-foreground:oklch(0.985 0.008 90);--negative:oklch(0.52 0.19 27);--negative-foreground:oklch(0.985 0.008 90);--warning:oklch(0.52 0.14 58);--warning-foreground:oklch(0.985 0.008 90);--pending:oklch(0.5 0.12 305);--pending-foreground:oklch(0.985 0.008 90);--banana:oklch(0.865 0.165 92);--scrim:oklch(0.2 0.03 55 / 0.45)}
+.dark{color-scheme:dark;--background:oklch(0.185 0.012 60);--foreground:oklch(0.955 0.012 85);--card:oklch(0.225 0.014 60);--card-foreground:oklch(0.955 0.012 85);--popover:oklch(0.225 0.014 60);--popover-foreground:oklch(0.955 0.012 85);--primary:oklch(0.865 0.165 92);--primary-foreground:oklch(0.22 0.03 55);--secondary:oklch(0.27 0.016 60);--secondary-foreground:oklch(0.955 0.012 85);--muted:oklch(0.27 0.016 60);--muted-foreground:oklch(0.74 0.025 75);--accent:oklch(0.27 0.016 60);--accent-foreground:oklch(0.955 0.012 85);--destructive:oklch(0.72 0.16 25);--destructive-foreground:oklch(0.185 0.012 60);--border:oklch(0.32 0.018 60);--input:oklch(0.38 0.02 60);--ring:oklch(0.8 0.14 88);--positive:oklch(0.78 0.15 150);--positive-foreground:oklch(0.185 0.012 60);--negative:oklch(0.72 0.16 25);--negative-foreground:oklch(0.185 0.012 60);--warning:oklch(0.8 0.13 72);--warning-foreground:oklch(0.185 0.012 60);--pending:oklch(0.76 0.1 305);--pending-foreground:oklch(0.185 0.012 60);--banana:oklch(0.865 0.165 92);--scrim:oklch(0 0 0 / 0.6)}
+body{margin:0}
+a{color:var(--foreground)}
+a:hover{color:var(--muted-foreground)}
+</style>
+</helmet>
+<div class="{{ themeClass }}" style="display:flex;justify-content:center;font-family:Manrope,system-ui,sans-serif">
+<div data-screen-label="{{ screenLabel }}" style="width:360px;height:760px;border-radius:34px;overflow:hidden;position:relative;background:var(--background);color:var(--foreground);box-shadow:0 0 0 1px var(--border),0 24px 60px -24px rgba(47,29,17,.35);display:flex;flex-direction:column;isolation:isolate">
+
+  <div style="height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px 0 26px;font:700 13px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">
+    <span>{{ clock }}</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <x-import component-from-global-scope="lc-icon" icon="signal" size="14" hint-size="14px,14px"></x-import>
+      <x-import component-from-global-scope="lc-icon" icon="{{ wifiIcon }}" size="14" hint-size="14px,14px"></x-import>
+      <x-import component-from-global-scope="lc-icon" icon="battery-medium" size="17" hint-size="17px,17px"></x-import>
+    </div>
+  </div>
+
+  <div style="flex:1;min-height:0;position:relative">
+    <div style="position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none">
+
+      <sc-if value="{{ is.hoje }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:6px 16px 108px">
+          <div style="display:flex;align-items:center;gap:10px;min-height:52px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">
+              <span style="font:600 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">sex, 16 de outubro</span>
+              <h1 style="margin:0;font:600 28px/1 Fredoka,sans-serif">Hoje</h1>
+            </div>
+            <sc-if value="{{ showSync }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;background:color-mix(in oklab,var(--pending) 12%,var(--card));color:var(--pending);font:700 11.5px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">
+                <x-import component-from-global-scope="lc-icon" icon="cloud-off" size="14" hint-size="14px,14px"></x-import>{{ syncLabel }}
+              </div>
+            </sc-if>
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font:700 13px Manrope,sans-serif;flex:none">MC</div>
+          </div>
+
+          <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:16px;background:var(--muted)">
+              <div style="width:52px;height:52px;flex:none;border-radius:50%;background:color-mix(in oklab,var(--pending) 18%,var(--card));display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+                <x-import component-from-global-scope="mascote-chimp" variant="c" mood="offline" style="width:42px;height:47px" hint-size="42px,47px"></x-import>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                <span style="font:700 14px/1.3 Manrope,sans-serif">Sem sinal na selva</span>
+                <span style="font:500 12.5px/1.4 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Suas batidas ficam salvas aqui e sobem quando a conexão voltar.</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--border)">
+            <div style="width:84px;height:84px;flex:none;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+              <x-import component-from-global-scope="mascote-chimp" variant="c" mood="{{ h.mood }}" style="width:72px;height:81px" hint-size="72px,81px"></x-import>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+              <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-foreground)">{{ h.nextLabel }}</span>
+              <span style="font:600 19px/1.2 Fredoka,sans-serif;text-wrap:balance;font-variant-numeric:tabular-nums">{{ h.nextTitle }}</span>
+              <span style="font:600 13px/1.35 Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">{{ h.nextSub }}</span>
+            </div>
+          </div>
+
+          <sc-if value="{{ h.hasAlert }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in oklab,var(--warning) 12%,var(--card));color:var(--warning);font:700 13px/1.35 Manrope,sans-serif;font-variant-numeric:tabular-nums">
+              <x-import component-from-global-scope="lc-icon" icon="triangle-alert" size="18" hint-size="18px,18px"></x-import>{{ h.alertText }}
+            </div>
+          </sc-if>
+
+          <div style="display:flex;flex-direction:column;padding:6px 6px 8px;border-radius:20px;background:var(--card);border:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px 6px">
+              <span style="flex:1;font:600 17px/1 Fredoka,sans-serif">Batidas</span>
+              <span style="font:700 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">{{ h.doneTxt }}</span>
+              <span style="color:var(--muted-foreground);display:flex"><x-import component-from-global-scope="cacho-banana" n="{{ h.n }}" size="34" hint-size="34px,34px"></x-import></span>
+            </div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ r.edit }}" aria-label="{{ r.aria }}" style="border:0;padding:0 10px;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:grid;grid-template-columns:22px minmax(0,1fr) auto 20px;gap:12px;align-items:center;min-height:52px;border-radius:14px;background:{{ r.rowBg }};position:relative">
+                <span style="position:relative;width:22px;height:22px;display:flex;align-items:center;justify-content:center">
+                  <span style="width:20px;height:20px;border-radius:50%;box-sizing:border-box;border:2px solid {{ r.dotBorder }};background:{{ r.dotBg }};color:var(--card);display:flex;align-items:center;justify-content:center">
+                    <sc-if value="{{ r.done }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="lc-icon" icon="check" size="12" stroke="3" hint-size="12px,12px"></x-import></sc-if>
+                  </span>
+                </span>
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                  <span style="font:{{ r.labelWeight }} 15px/1.2 Manrope,sans-serif">{{ r.label }}</span>
+                  <sc-if value="{{ r.isNext }}" hint-placeholder-val="{{ false }}"><span style="font:700 11.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">próxima batida</span></sc-if>
+                </span>
+                <span style="display:flex;align-items:baseline;gap:5px;font-variant-numeric:tabular-nums">
+                  <span style="font:600 11.5px Manrope,sans-serif;color:var(--muted-foreground)">{{ r.pre }}</span>
+                  <span style="font:800 18px/1 Manrope,sans-serif;color:{{ r.timeColor }}">{{ r.time }}</span>
+                </span>
+                <span style="color:var(--muted-foreground);display:flex;opacity:{{ r.editOpacity }}"><x-import component-from-global-scope="lc-icon" icon="pencil" size="16" hint-size="16px,16px"></x-import></span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+            <div style="padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">Trabalhadas</span>
+              <span style="font:800 26px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">{{ h.worked }}</span>
+              <span style="font:600 12px/1 Manrope,sans-serif;color:var(--muted-foreground)">de 8h48</span>
+            </div>
+            <div style="padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">Saldo do dia</span>
+              <span style="font:800 26px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:{{ h.daySaldoColor }}">{{ h.daySaldo }}</span>
+              <span style="font:600 12px/1 Manrope,sans-serif;color:var(--muted-foreground)">{{ h.daySaldoSub }}</span>
+            </div>
+          </div>
+          <button onClick="{{ goPeriodo }}" style="border:0;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;padding:14px 14px 14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--border);min-height:64px">
+            <span style="flex:1;display:flex;flex-direction:column;gap:5px">
+              <span style="font:600 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">Saldo do período · 20 set – 19 out</span>
+              <span style="font:800 22px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:{{ per.saldoColor }}">{{ per.saldo }}</span>
+            </span>
+            <span style="color:var(--muted-foreground);display:flex"><x-import component-from-global-scope="lc-icon" icon="chevron-right" size="20" hint-size="20px,20px"></x-import></span>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.periodo }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:6px 16px 24px">
+          <div style="display:flex;align-items:center;min-height:52px"><h1 style="margin:0;font:600 28px/1 Fredoka,sans-serif">Período</h1></div>
+          <div style="display:flex;align-items:center;gap:4px;padding:4px;border-radius:16px;background:var(--muted)">
+            <button onClick="{{ per.prev }}" aria-label="Período anterior" style="border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="chevron-left" size="20" hint-size="20px,20px"></x-import></button>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+              <span style="font:800 15px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">20 set → 19 out</span>
+              <span style="font:600 11.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">período atual · fecha em 3 dias</span>
+            </div>
+            <button onClick="{{ per.next }}" aria-label="Próximo período" style="border:0;background:none;padding:0;font:inherit;color:var(--muted-foreground);cursor:pointer;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.45"><x-import component-from-global-scope="lc-icon" icon="chevron-right" size="20" hint-size="20px,20px"></x-import></button>
+          </div>
+
+          <div style="padding:18px 16px 16px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font:600 12.5px/1 Manrope,sans-serif;color:var(--muted-foreground)">Saldo do período</span>
+                <span style="font:800 40px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;color:{{ per.saldoColor }}">{{ per.saldo }}</span>
+              </div>
+              <div style="width:64px;height:64px;flex:none;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+                <x-import component-from-global-scope="mascote-chimp" variant="c" mood="{{ per.mood }}" style="width:54px;height:60px" hint-size="54px,60px"></x-import>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+              <div style="padding:10px;border-radius:12px;background:var(--muted);display:flex;flex-direction:column;gap:5px"><span style="font:600 11.5px/1.1 Manrope,sans-serif;color:var(--muted-foreground)">Horas extras</span><span style="font:800 16px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:var(--positive)">{{ per.extras }}</span></div>
+              <div style="padding:10px;border-radius:12px;background:var(--muted);display:flex;flex-direction:column;gap:5px"><span style="font:600 11.5px/1.1 Manrope,sans-serif;color:var(--muted-foreground)">Débito</span><span style="font:800 16px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:var(--negative)">{{ per.debito }}</span></div>
+              <div style="padding:10px;border-radius:12px;background:var(--muted);display:flex;flex-direction:column;gap:5px"><span style="font:600 11.5px/1.1 Manrope,sans-serif;color:var(--muted-foreground)">Pendências</span><span style="font:800 16px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:var(--warning)">{{ per.pendCount }}</span></div>
+            </div>
+          </div>
+
+          <div role="tablist" style="display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:var(--muted)">
+            <sc-for list="{{ per.filters }}" as="f" hint-placeholder-count="2">
+              <button role="tab" onClick="{{ f.pick }}" style="border:0;padding:0;margin:0;font:700 13.5px Manrope,sans-serif;cursor:pointer;height:40px;border-radius:11px;background:{{ f.bg }};color:{{ f.fg }};box-shadow:{{ f.shadow }}">{{ f.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="border-radius:20px;background:var(--card);border:1px solid var(--border);overflow:hidden">
+            <sc-for list="{{ per.days }}" as="d" hint-placeholder-count="8">
+              <sc-if value="{{ d.isHeader }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:12px 16px 8px;font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);background:var(--muted)">{{ d.label }}</div>
+              </sc-if>
+              <sc-if value="{{ d.isDay }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ d.open }}" style="border:0;border-top:1px solid var(--border);margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;display:grid;grid-template-columns:40px minmax(0,1fr) auto 16px;gap:12px;align-items:center;padding:10px 12px 10px 14px;min-height:62px;width:100%;box-sizing:border-box;background:{{ d.rowBg }};opacity:{{ d.opacity }}">
+                  <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font:700 10.5px/1 Manrope,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-foreground)">{{ d.dow }}</span><span style="font:800 19px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">{{ d.d }}</span></span>
+                  <span style="display:flex;flex-direction:column;gap:5px;min-width:0;align-items:flex-start">
+                    <span style="font:600 14px/1.2 Manrope,sans-serif;font-variant-numeric:tabular-nums">{{ d.worked }}</span>
+                    <sc-if value="{{ d.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="font:700 11px/1 Manrope,sans-serif;padding:4px 8px;border-radius:999px;background:{{ d.bBg }};color:{{ d.bFg }};font-variant-numeric:tabular-nums">{{ d.bTxt }}</span></sc-if>
+                  </span>
+                  <span style="font:800 15px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:{{ d.sColor }}">{{ d.saldo }}</span>
+                  <span style="color:var(--muted-foreground);display:flex"><x-import component-from-global-scope="lc-icon" icon="chevron-right" size="16" hint-size="16px,16px"></x-import></span>
+                </button>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.dia }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px">
+          <div style="display:flex;align-items:center;gap:6px;min-height:52px;margin-left:-8px">
+            <button onClick="{{ day.back }}" aria-label="Voltar" style="border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="chevron-left" size="24" hint-size="24px,24px"></x-import></button>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font:600 12px/1 Manrope,sans-serif;color:var(--muted-foreground)">Período 20 set → 19 out</span>
+              <h1 style="margin:0;font:600 24px/1 Fredoka,sans-serif">{{ day.title }}</h1>
+            </div>
+          </div>
+
+          <sc-for list="{{ day.alerts }}" as="a" hint-placeholder-count="1">
+            <div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in oklab,var(--warning) 12%,var(--card));color:var(--warning)">
+              <x-import component-from-global-scope="lc-icon" icon="triangle-alert" size="18" hint-size="18px,18px"></x-import>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font:800 13.5px/1.3 Manrope,sans-serif">{{ a.t }}</span><span style="font:600 12.5px/1.4 Manrope,sans-serif">{{ a.s }}</span></div>
+            </div>
+          </sc-for>
+
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Tipo do dia</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ day.types }}" as="ty" hint-placeholder-count="6">
+                <button onClick="{{ ty.pick }}" aria-pressed="{{ ty.on }}" style="margin:0;font:700 13px/1 Manrope,sans-serif;cursor:pointer;height:38px;padding:0 14px;border-radius:999px;border:1px solid {{ ty.border }};background:{{ ty.bg }};color:{{ ty.fg }}">{{ ty.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:6px 14px;border-radius:20px;background:var(--card);border:1px solid var(--border);opacity:{{ day.dim }};display:flex;flex-direction:column">
+            <sc-for list="{{ day.rows }}" as="pr" hint-placeholder-count="4">
+              <label style="display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid {{ pr.line }}">
+                <span style="flex:1;font:600 15px Manrope,sans-serif">{{ pr.label }}</span>
+                <input type="time" value="{{ pr.value }}" onChange="{{ pr.onChange }}" aria-label="{{ pr.label }}" style="height:44px;width:118px;box-sizing:border-box;border-radius:12px;border:1px solid var(--input);background:var(--background);color:var(--foreground);padding:0 10px;font:800 17px Manrope,sans-serif;font-variant-numeric:tabular-nums;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+              </label>
+            </sc-for>
+          </div>
+          <sc-if value="{{ day.hasTypeNote }}" hint-placeholder-val="{{ false }}">
+            <span style="font:600 12.5px/1.4 Manrope,sans-serif;color:var(--muted-foreground)">{{ day.typeNote }}</span>
+          </sc-if>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="padding:12px 14px;border-radius:16px;background:var(--muted);display:flex;flex-direction:column;gap:5px"><span style="font:600 12px/1 Manrope,sans-serif;color:var(--muted-foreground)">Trabalhadas</span><span style="font:800 20px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums">{{ day.worked }}</span></div>
+            <div style="padding:12px 14px;border-radius:16px;background:var(--muted);display:flex;flex-direction:column;gap:5px"><span style="font:600 12px/1 Manrope,sans-serif;color:var(--muted-foreground)">Saldo do dia</span><span style="font:800 20px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;color:{{ day.saldoColor }}">{{ day.saldo }}</span></div>
+          </div>
+          <input value="{{ day.note }}" onChange="{{ day.onNote }}" placeholder="Observação (opcional)" style="height:48px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--card);color:var(--foreground);padding:0 14px;font:500 15px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+          <div style="margin-top:auto;padding-top:8px">
+            <button onClick="{{ day.save }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))" style-active="transform:translateY(1px)">Salvar dia</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.salario }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:6px 16px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px">
+            <h1 style="margin:0;font:600 28px/1 Fredoka,sans-serif">Salário</h1>
+            <sc-if value="{{ sal.open }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ sal.lock }}" style="margin:0;cursor:pointer;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--input);background:var(--card);color:var(--foreground);display:flex;align-items:center;gap:8px;font:700 13.5px Manrope,sans-serif"><x-import component-from-global-scope="lc-icon" icon="lock" size="16" hint-size="16px,16px"></x-import>Trancar</button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ sal.locked }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+              <div style="padding:22px 18px 20px;border-radius:24px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+                <div style="width:132px;height:132px;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+                  <x-import component-from-global-scope="mascote-chimp" variant="c" mood="cofre" style="width:112px;height:125px" hint-size="112px,125px"></x-import>
+                </div>
+                <span style="font:600 20px/1.2 Fredoka,sans-serif;margin-top:4px">Cofre trancado</span>
+                <span style="font:800 34px/1 Manrope,sans-serif;letter-spacing:.04em;color:var(--muted-foreground)">R$ •••••</span>
+                <span style="font:600 13px/1.4 Manrope,sans-serif;color:var(--muted-foreground)">Líquido estimado · cai em 1º nov</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;padding:0 4px;color:var(--muted-foreground)">
+                <x-import component-from-global-scope="lc-icon" icon="shield-check" size="18" hint-size="18px,18px"></x-import>
+                <span style="font:600 12.5px/1.45 Manrope,sans-serif;text-wrap:pretty">Salário e descontos ficam criptografados com uma senha só sua, separada do login. Nem a equipe do Chimponto consegue abrir.</span>
+              </div>
+              <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="position:relative;display:flex">
+                    <input type="{{ sal.pwType }}" value="{{ sal.pw }}" onChange="{{ sal.onPw }}" onKeyDown="{{ sal.onKey }}" placeholder="Senha do cofre" aria-label="Senha do cofre" style="flex:1;height:52px;box-sizing:border-box;border-radius:14px;border:1px solid {{ sal.pwBorder }};background:var(--card);color:var(--foreground);padding:0 52px 0 16px;font:600 16px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+                    <button onClick="{{ sal.togglePw }}" aria-label="Mostrar senha" style="border:0;background:none;padding:0;cursor:pointer;position:absolute;right:4px;top:4px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground)"><x-import component-from-global-scope="lc-icon" icon="{{ sal.pwIcon }}" size="18" hint-size="18px,18px"></x-import></button>
+                  </div>
+                  <sc-if value="{{ sal.hasErr }}" hint-placeholder-val="{{ false }}"><span style="font:700 12.5px Manrope,sans-serif;color:var(--negative)">{{ sal.pwErr }}</span></sc-if>
+                </div>
+                <button onClick="{{ sal.unlock }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))" style-active="transform:translateY(1px)"><x-import component-from-global-scope="lc-icon" icon="lock-open" size="20" hint-size="20px,20px"></x-import>Abrir cofre</button>
+                <button onClick="{{ sal.forgot }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;font:700 13.5px Manrope,sans-serif;color:var(--foreground);text-decoration:underline;text-underline-offset:3px">Esqueci a senha · usar código de recuperação</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ sal.none }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+              <div style="padding:22px 18px;border-radius:24px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+                <div style="width:132px;height:132px;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+                  <x-import component-from-global-scope="mascote-chimp" variant="c" mood="cofre" style="width:112px;height:125px" hint-size="112px,125px"></x-import>
+                </div>
+                <span style="font:600 20px/1.2 Fredoka,sans-serif">Seu salário mora num cofre</span>
+                <span style="font:500 14px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Para estimar o líquido do dia 1º, o Chimponto precisa do seu salário e descontos. Eles ficam trancados com uma senha que só você sabe.</span>
+              </div>
+              <div style="margin-top:auto">
+                <button onClick="{{ sal.create }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">Criar cofre</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ sal.open }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="position:relative;padding:18px 18px 18px;border-radius:24px;background:var(--primary);color:var(--primary-foreground);overflow:hidden;display:flex;flex-direction:column;gap:6px">
+                <span style="font:700 12.5px/1 Manrope,sans-serif">Líquido estimado</span>
+                <span style="font:800 36px/1.05 Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-0.02em">R$ 2.874,49</span>
+                <span style="font:700 13px/1.3 Manrope,sans-serif">cai em dom, 1º nov</span>
+                <span style="font:600 12px/1.3 Manrope,sans-serif;opacity:.85">período 20 set → 19 out</span>
+                <div style="position:absolute;right:-6px;bottom:-14px;width:112px;height:125px">
+                  <x-import component-from-global-scope="mascote-chimp" variant="c" mood="contando" style="width:112px;height:125px" hint-size="112px,125px"></x-import>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--muted)">
+                <x-import component-from-global-scope="lc-icon" icon="info" size="18" hint-size="18px,18px"></x-import>
+                <span style="font:700 13px/1.4 Manrope,sans-serif">Estimativa — o oficial é o holerite.</span>
+              </div>
+              <div style="padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;font-variant-numeric:tabular-nums">
+                <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground)">Proventos</span>
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px 12px;align-items:baseline;font:600 14px/1.3 Manrope,sans-serif">
+                  <span>Salário base</span><span style="font-size:12.5px;color:var(--muted-foreground)">220h</span><span style="text-align:right;font-weight:800">8.500,00</span>
+                  <span>Horas extras 50%</span><span style="font-size:12.5px;color:var(--muted-foreground)">5h02</span><span style="text-align:right;font-weight:800">291,67</span>
+                  <span>DSR sobre extras</span><span style="font-size:12.5px;color:var(--muted-foreground)"></span><span style="text-align:right;font-weight:800">69,44</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--border);font:700 13px Manrope,sans-serif;color:var(--muted-foreground)"><span>Total proventos</span><span>8.861,11</span></div>
+                <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);margin-top:8px">Descontos</span>
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px 12px;align-items:baseline;font:600 14px/1.3 Manrope,sans-serif">
+                  <span>Atrasos e saídas</span><span style="font-size:12.5px;color:var(--muted-foreground)">1h52</span><span style="text-align:right;font-weight:800">−72,13</span>
+                  <span>INSS</span><span style="font-size:12.5px;color:var(--muted-foreground)">teto</span><span style="text-align:right;font-weight:800">−988,07</span>
+                  <span>IRRF</span><span style="font-size:12.5px;color:var(--muted-foreground)">27,5%</span><span style="text-align:right;font-weight:800">−1.236,52</span>
+                  <span>Plano de saúde</span><span style="font-size:12.5px;color:var(--muted-foreground)"></span><span style="text-align:right;font-weight:800">−289,90</span>
+                  <span>Adiantamento</span><span style="font-size:12.5px;color:var(--muted-foreground)">20 out</span><span style="text-align:right;font-weight:800">−3.400,00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--border);font:700 13px Manrope,sans-serif;color:var(--muted-foreground)"><span>Total descontos</span><span>−5.986,62</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;border-top:2px solid var(--foreground);font:800 17px Manrope,sans-serif"><span>Líquido</span><span>R$ 2.874,49</span></div>
+              </div>
+              <button onClick="{{ goAjustes }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;font:700 13.5px Manrope,sans-serif;color:var(--foreground);text-decoration:underline;text-underline-offset:3px">Editar salário e descontos</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.cofreCriar }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:4px 16px 16px">
+          <div style="display:flex;align-items:center;gap:6px;min-height:52px;margin-left:-8px">
+            <button onClick="{{ cc.back }}" aria-label="Voltar" style="border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="chevron-left" size="24" hint-size="24px,24px"></x-import></button>
+            <span style="flex:1;font:600 20px/1 Fredoka,sans-serif">Criar cofre</span>
+            <span style="font:700 12.5px Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">{{ cc.stepTxt }}</span>
+          </div>
+
+          <sc-if value="{{ cc.s1 }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:76px;height:76px;flex:none;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden"><x-import component-from-global-scope="mascote-chimp" variant="c" mood="cofre" style="width:66px;height:74px" hint-size="66px,74px"></x-import></div>
+                <div style="display:flex;flex-direction:column;gap:4px"><span style="font:600 21px/1.15 Fredoka,sans-serif">Crie a senha do cofre</span><span style="font:500 13px/1.45 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Diferente da senha de login. Ela nunca sai do seu aparelho.</span></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <input type="password" value="{{ cc.np1 }}" onChange="{{ cc.on1 }}" placeholder="Nova senha do cofre" aria-label="Nova senha do cofre" style="height:52px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--card);color:var(--foreground);padding:0 16px;font:600 16px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+                  <sc-for list="{{ cc.bars }}" as="b" hint-placeholder-count="4"><span style="height:6px;border-radius:3px;background:{{ b.bg }}"></span></sc-for>
+                </div>
+                <span style="font:700 12.5px Manrope,sans-serif;color:{{ cc.strColor }}">{{ cc.strLabel }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <input type="password" value="{{ cc.np2 }}" onChange="{{ cc.on2 }}" placeholder="Repita a senha" aria-label="Repita a senha" style="height:52px;box-sizing:border-box;border-radius:14px;border:1px solid {{ cc.np2Border }};background:var(--card);color:var(--foreground);padding:0 16px;font:600 16px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+                <sc-if value="{{ cc.mismatch }}" hint-placeholder-val="{{ false }}"><span style="font:700 12.5px Manrope,sans-serif;color:var(--negative)">As senhas não batem.</span></sc-if>
+              </div>
+              <div style="margin-top:auto">
+                <button onClick="{{ cc.next }}" disabled="{{ cc.cantNext }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;opacity:{{ cc.nextOpacity }};box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">Continuar</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cc.s2 }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font:600 22px/1.15 Fredoka,sans-serif">Guarde seu código de recuperação</span><span style="font:500 13.5px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Se esquecer a senha, só este código abre o cofre.</span></div>
+              <div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in oklab,var(--warning) 12%,var(--card));color:var(--warning)">
+                <x-import component-from-global-scope="lc-icon" icon="triangle-alert" size="18" hint-size="18px,18px"></x-import>
+                <span style="font:700 13px/1.45 Manrope,sans-serif;text-wrap:pretty">Sem a senha e sem este código, ninguém recupera seus dados de salário — nem a gente. Ele aparece só agora.</span>
+              </div>
+              <div style="padding:18px 14px;border-radius:18px;border:2px dashed var(--input);background:var(--card);display:flex;flex-direction:column;align-items:center;gap:14px">
+                <span style="font:700 21px/1 ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:.06em">BNN4-7KQ2-XC9M-T3PA</span>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%">
+                  <button onClick="{{ cc.copy }}" style="margin:0;cursor:pointer;height:44px;border-radius:12px;border:1px solid var(--input);background:var(--background);color:var(--foreground);display:flex;align-items:center;justify-content:center;gap:8px;font:700 13.5px Manrope,sans-serif"><x-import component-from-global-scope="lc-icon" icon="copy" size="16" hint-size="16px,16px"></x-import>Copiar</button>
+                  <button onClick="{{ cc.download }}" style="margin:0;cursor:pointer;height:44px;border-radius:12px;border:1px solid var(--input);background:var(--background);color:var(--foreground);display:flex;align-items:center;justify-content:center;gap:8px;font:700 13.5px Manrope,sans-serif"><x-import component-from-global-scope="lc-icon" icon="download" size="16" hint-size="16px,16px"></x-import>Baixar .txt</button>
+                </div>
+              </div>
+              <button onClick="{{ cc.toggleSaved }}" role="checkbox" aria-checked="{{ cc.saved }}" style="border:0;background:none;margin:0;padding:6px 2px;cursor:pointer;color:inherit;text-align:left;display:flex;align-items:center;gap:12px;min-height:48px">
+                <span style="width:24px;height:24px;flex:none;box-sizing:border-box;border-radius:7px;border:2px solid {{ cc.chkBorder }};background:{{ cc.chkBg }};color:var(--background);display:flex;align-items:center;justify-content:center"><sc-if value="{{ cc.saved }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="lc-icon" icon="check" size="14" stroke="3" hint-size="14px,14px"></x-import></sc-if></span>
+                <span style="font:600 14px/1.4 Manrope,sans-serif">Guardei o código num lugar seguro (gerenciador de senhas ou papel).</span>
+              </button>
+              <div style="margin-top:auto">
+                <button onClick="{{ cc.finish }}" disabled="{{ cc.cantFinish }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;opacity:{{ cc.finishOpacity }};box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">Abrir meu cofre</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.ajustes }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:6px 16px 24px">
+          <div style="display:flex;align-items:center;min-height:52px"><h1 style="margin:0;font:600 28px/1 Fredoka,sans-serif">Ajustes</h1></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:20px;background:var(--card);border:1px solid var(--border)">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font:700 15px Manrope,sans-serif;flex:none">MC</div>
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font:700 15px/1.2 Manrope,sans-serif">Marina Costa</span><span style="font:500 12.5px/1.2 Manrope,sans-serif;color:var(--muted-foreground)">marina@lumen.dev · Lumen Software</span></div>
+          </div>
+
+          <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);margin:8px 4px 0">Notificações</span>
+          <div style="border-radius:20px;background:var(--card);border:1px solid var(--border);overflow:hidden">
+            <sc-for list="{{ aj.switches }}" as="sw" hint-placeholder-count="2">
+              <button onClick="{{ sw.toggle }}" role="switch" aria-checked="{{ sw.on }}" style="border:0;border-top:1px solid {{ sw.line }};background:none;margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;width:100%;display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:62px;box-sizing:border-box">
+                <span style="color:var(--muted-foreground);display:flex"><x-import component-from-global-scope="lc-icon" icon="bell" size="20" hint-size="20px,20px"></x-import></span>
+                <span style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font:600 14.5px/1.25 Manrope,sans-serif">{{ sw.label }}</span><span style="font:500 12.5px/1.2 Manrope,sans-serif;color:var(--muted-foreground)">{{ sw.sub }}</span></span>
+                <span style="width:46px;height:28px;flex:none;box-sizing:border-box;border-radius:999px;background:{{ sw.track }};border:1px solid {{ sw.trackBorder }};position:relative;transition:background .2s"><span style="position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.25);transform:{{ sw.knob }};transition:transform .2s"></span></span>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ aj.groups }}" as="g" hint-placeholder-count="4">
+            <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);margin:8px 4px 0">{{ g.title }}</span>
+            <div style="border-radius:20px;background:var(--card);border:1px solid var(--border);overflow:hidden">
+              <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+                <button onClick="{{ it.act }}" style="border:0;border-top:1px solid {{ it.line }};background:none;margin:0;font:inherit;color:{{ it.color }};cursor:pointer;text-align:left;width:100%;display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:58px;box-sizing:border-box">
+                  <span style="color:{{ it.iconColor }};display:flex"><x-import component-from-global-scope="lc-icon" icon="{{ it.icon }}" size="20" hint-size="20px,20px"></x-import></span>
+                  <span style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font:600 14.5px/1.25 Manrope,sans-serif">{{ it.label }}</span><span style="font:500 12.5px/1.25 Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">{{ it.sub }}</span></span>
+                  <span style="color:var(--muted-foreground);display:flex"><x-import component-from-global-scope="lc-icon" icon="chevron-right" size="16" hint-size="16px,16px"></x-import></span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-for>
+
+          <span style="font:700 11px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);margin:8px 4px 0">Aparência</span>
+          <div role="radiogroup" style="display:grid;grid-template-columns:repeat(3,1fr);padding:4px;border-radius:14px;background:var(--muted)">
+            <sc-for list="{{ aj.themes }}" as="th" hint-placeholder-count="3">
+              <button role="radio" aria-checked="{{ th.on }}" onClick="{{ th.pick }}" style="border:0;padding:0;margin:0;font:700 13px Manrope,sans-serif;cursor:pointer;height:44px;border-radius:11px;background:{{ th.bg }};color:{{ th.fg }};box-shadow:{{ th.shadow }};display:flex;align-items:center;justify-content:center;gap:6px"><x-import component-from-global-scope="lc-icon" icon="{{ th.icon }}" size="16" hint-size="16px,16px"></x-import>{{ th.label }}</button>
+            </sc-for>
+          </div>
+          <span style="text-align:center;font:600 12px Manrope,sans-serif;color:var(--muted-foreground);margin-top:8px">Chimponto 1.0 · seus dados, seu galho</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.login }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;padding:20px 20px 20px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:28px;text-align:center">
+            <div style="width:168px;height:168px;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+              <x-import component-from-global-scope="mascote-chimp" variant="c" mood="boasvindas" style="width:140px;height:157px" hint-size="140px,157px"></x-import>
+            </div>
+            <span style="font:600 38px/1 Fredoka,sans-serif;letter-spacing:-0.01em;margin-top:8px">Chimponto</span>
+            <span style="font:500 15px/1.45 Manrope,sans-serif;color:var(--muted-foreground);max-width:260px;text-wrap:balance">Seu ponto e seu saldo de horas, sem esperar o RH.</span>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+            <button onClick="{{ onb.google }}" style="margin:0;cursor:pointer;height:52px;width:100%;border-radius:16px;border:1px solid var(--input);background:var(--card);color:var(--foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:700 15px Manrope,sans-serif"><span style="width:22px;height:22px;border-radius:50%;background:var(--foreground);color:var(--background);display:flex;align-items:center;justify-content:center;font:700 13px/1 Fredoka,sans-serif">G</span>Continuar com Google</button>
+            <div style="display:flex;align-items:center;gap:10px;font:600 12px Manrope,sans-serif;color:var(--muted-foreground)"><span style="flex:1;height:1px;background:var(--border)"></span>ou<span style="flex:1;height:1px;background:var(--border)"></span></div>
+            <input type="email" value="{{ onb.email }}" onChange="{{ onb.onEmail }}" placeholder="seu@email.com" aria-label="E-mail" style="height:52px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--card);color:var(--foreground);padding:0 16px;font:600 16px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+            <button onClick="{{ onb.magic }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))"><x-import component-from-global-scope="lc-icon" icon="mail" size="20" hint-size="20px,20px"></x-import>Receber link mágico</button>
+            <span style="text-align:center;font:500 12px/1.4 Manrope,sans-serif;color:var(--muted-foreground)">Sem senha: mandamos um link que entra direto.</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.empresa }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:12px 20px 20px">
+          <div style="display:flex;gap:6px"><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--border)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--border)"></span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px"><span style="font:600 26px/1.1 Fredoka,sans-serif">Onde você trabalha?</span><span style="font:500 14px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Colegas da mesma empresa dividem jornada e feriados. Cada um vê só os próprios dados.</span></div>
+          <button onClick="{{ onb.pickConvite }}" style="margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;padding:16px;border-radius:18px;border:2px solid {{ onb.convBorder }};background:var(--card);display:flex;flex-direction:column;gap:12px">
+            <span style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:var(--muted);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="mail" size="20" hint-size="20px,20px"></x-import></span><span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 15px Manrope,sans-serif">Tenho um convite</span><span style="font:500 12.5px Manrope,sans-serif;color:var(--muted-foreground)">Um colega já usa o Chimponto</span></span></span>
+            <sc-if value="{{ onb.isConvite }}" hint-placeholder-val="{{ true }}">
+              <span style="display:flex;flex-direction:column;gap:8px">
+                <span style="height:48px;border-radius:12px;border:1px solid var(--input);background:var(--background);display:flex;align-items:center;padding:0 14px;font:700 16px ui-monospace,Menlo,monospace;letter-spacing:.08em">LUMEN-7K2Q</span>
+                <span style="display:flex;align-items:center;gap:6px;font:700 12.5px Manrope,sans-serif;color:var(--positive)"><x-import component-from-global-scope="lc-icon" icon="circle-check" size="16" hint-size="16px,16px"></x-import>Lumen Software Ltda · 14 colegas</span>
+              </span>
+            </sc-if>
+          </button>
+          <button onClick="{{ onb.pickCriar }}" style="margin:0;font:inherit;color:inherit;cursor:pointer;text-align:left;padding:16px;border-radius:18px;border:2px solid {{ onb.criarBorder }};background:var(--card);display:flex;flex-direction:column;gap:12px">
+            <span style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:var(--muted);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="building-2" size="20" hint-size="20px,20px"></x-import></span><span style="display:flex;flex-direction:column;gap:2px"><span style="font:700 15px Manrope,sans-serif">Criar empresa</span><span style="font:500 12.5px Manrope,sans-serif;color:var(--muted-foreground)">Você define jornada e feriados</span></span></span>
+            <sc-if value="{{ onb.isCriar }}" hint-placeholder-val="{{ false }}">
+              <span style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px">
+                <span style="height:48px;border-radius:12px;border:1px solid var(--input);background:var(--background);display:flex;align-items:center;padding:0 14px;font:600 15px Manrope,sans-serif;color:var(--muted-foreground)">Nome da empresa</span>
+                <span style="height:48px;border-radius:12px;border:1px solid var(--input);background:var(--background);display:flex;align-items:center;justify-content:center;font:800 15px Manrope,sans-serif;font-variant-numeric:tabular-nums">8h48</span>
+              </span>
+            </sc-if>
+          </button>
+          <div style="margin-top:auto">
+            <button onClick="{{ onb.toInstall }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">Continuar</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.instalar }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:12px 20px 20px">
+          <div style="display:flex;gap:6px"><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--border)"></span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px"><span style="font:600 26px/1.1 Fredoka,sans-serif">Instale no iPhone</span><span style="font:500 14px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">No iPhone, os lembretes só funcionam com o Chimponto na tela de início. Leva 10 segundos.</span></div>
+          <div style="padding:6px 14px;border-radius:20px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid var(--border)">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font:800 13px Manrope,sans-serif;flex:none">1</span>
+              <span style="flex:1;font:600 14.5px/1.35 Manrope,sans-serif">No Safari, toque em <b>Compartilhar</b></span>
+              <span style="width:40px;height:40px;border-radius:12px;background:var(--muted);display:flex;align-items:center;justify-content:center;color:oklch(0.55 0.15 255)"><x-import component-from-global-scope="lc-icon" icon="share" size="20" hint-size="20px,20px"></x-import></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-bottom:1px solid var(--border)">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font:800 13px Manrope,sans-serif;flex:none">2</span>
+              <span style="flex:1;font:600 14.5px/1.35 Manrope,sans-serif">Escolha <b>Adicionar à Tela de Início</b></span>
+              <span style="width:40px;height:40px;border-radius:12px;background:var(--muted);display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="square-plus" size="20" hint-size="20px,20px"></x-import></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;min-height:64px">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--muted);display:flex;align-items:center;justify-content:center;font:800 13px Manrope,sans-serif;flex:none">3</span>
+              <span style="flex:1;font:600 14.5px/1.35 Manrope,sans-serif">Abra pelo ícone do Chimponto</span>
+              <img src="./icons/icon-192.png" alt="Ícone do Chimponto" style="width:40px;height:40px;border-radius:10px;display:block">
+            </div>
+          </div>
+          <div style="align-self:center;display:flex;align-items:center;gap:22px;padding:10px 22px;border-radius:999px;background:var(--muted);color:var(--muted-foreground)">
+            <x-import component-from-global-scope="lc-icon" icon="chevron-left" size="20" hint-size="20px,20px"></x-import>
+            <x-import component-from-global-scope="lc-icon" icon="chevron-right" size="20" hint-size="20px,20px"></x-import>
+            <span style="display:flex;padding:6px;border-radius:10px;box-shadow:0 0 0 2px var(--banana);color:oklch(0.55 0.15 255)"><x-import component-from-global-scope="lc-icon" icon="share" size="20" hint-size="20px,20px"></x-import></span>
+            <x-import component-from-global-scope="lc-icon" icon="book-open" size="20" hint-size="20px,20px"></x-import>
+            <x-import component-from-global-scope="lc-icon" icon="copy" size="20" hint-size="20px,20px"></x-import>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+            <button onClick="{{ onb.toNotif }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))">Já instalei</button>
+            <button onClick="{{ onb.toNotif }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;font:700 14px Manrope,sans-serif;color:var(--foreground)">Estou no Android · pular</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.notificacoes }}" hint-placeholder-val="{{ false }}">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:12px 20px 20px">
+          <div style="display:flex;gap:6px"><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span><span style="height:5px;flex:1;border-radius:3px;background:var(--foreground)"></span></div>
+          <div style="align-self:center;width:150px;height:150px;border-radius:50%;background:var(--banana);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;margin-top:16px">
+            <x-import component-from-global-scope="mascote-chimp" variant="c" mood="almoco" style="width:126px;height:141px" hint-size="126px,141px"></x-import>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;text-align:center;align-items:center"><span style="font:600 26px/1.1 Fredoka,sans-serif">Lembretes na hora certa</span><span style="font:500 14px/1.5 Manrope,sans-serif;color:var(--muted-foreground);max-width:290px;text-wrap:balance">Avisamos 10 min antes da volta do almoço e da saída. Só isso.</span></div>
+          <div style="display:flex;gap:12px;padding:12px 14px;border-radius:20px;background:var(--muted);align-items:flex-start">
+            <img src="./icons/icon-192.png" alt="" style="width:38px;height:38px;border-radius:9px;display:block;flex:none">
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+              <div style="display:flex;justify-content:space-between;font:600 12px Manrope,sans-serif;color:var(--muted-foreground)"><span>CHIMPONTO</span><span>agora</span></div>
+              <span style="font:800 14px/1.3 Manrope,sans-serif">Hora de voltar pro galho! 🍌</span>
+              <span style="font:500 13.5px/1.35 Manrope,sans-serif;font-variant-numeric:tabular-nums">Bata o ponto às 14:28.</span>
+            </div>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+            <button onClick="{{ onb.enableNotif }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))"><x-import component-from-global-scope="lc-icon" icon="bell" size="20" hint-size="20px,20px"></x-import>Ativar lembretes</button>
+            <button onClick="{{ onb.skipNotif }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;font:700 14px Manrope,sans-serif;color:var(--foreground)">Agora não</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <sc-if value="{{ is.hoje }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:18px 16px 12px;background:linear-gradient(to top,var(--background) 72%,transparent)">
+        <button onClick="{{ h.cta }}" disabled="{{ h.ctaDisabled }}" style="border:0;margin:0;cursor:pointer;height:60px;width:100%;border-radius:18px;background:{{ h.ctaBg }};color:{{ h.ctaFg }};display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:{{ h.ctaShadow }}" style-active="transform:translateY(1px)">
+          <x-import component-from-global-scope="lc-icon" icon="{{ h.ctaIcon }}" size="24" hint-size="24px,24px"></x-import>
+          <span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span style="font:800 17px/1 Manrope,sans-serif">{{ h.ctaLabel }}</span><span style="font:700 12px/1 Manrope,sans-serif;opacity:.8">{{ h.ctaSub }}</span></span>
+        </button>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+    <nav style="flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border-top:1px solid var(--border);padding:6px 4px 16px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.go }}" aria-current="{{ t.current }}" style="border:0;background:none;padding:0;margin:0;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:54px">
+          <span style="width:56px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ t.bg }};color:{{ t.fg }};transition:background .2s"><x-import component-from-global-scope="lc-icon" icon="{{ t.icon }}" size="20" hint-size="20px,20px"></x-import></span>
+          <span style="font-family:Manrope,sans-serif;font-size:11.5px;line-height:1;font-weight:{{ t.weight }};color:{{ t.labelColor }}">{{ t.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+  </sc-if>
+
+  <div style="position:absolute;inset:0;z-index:20;pointer-events:{{ sheet.pe }}">
+    <div onClick="{{ sheet.close }}" style="position:absolute;inset:0;background:var(--scrim);opacity:{{ sheet.scrim }};transition:opacity .25s"></div>
+    <div role="dialog" aria-label="{{ sheet.title }}" style="position:absolute;left:0;right:0;bottom:0;max-height:90%;overflow-y:auto;scrollbar-width:none;background:var(--card);border-radius:26px 26px 0 0;padding:8px 16px 18px;box-sizing:border-box;transform:{{ sheet.y }};transition:transform .32s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:14px">
+      <div style="align-self:center;width:40px;height:5px;border-radius:3px;background:var(--border)"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="flex:1;font:600 22px/1 Fredoka,sans-serif">{{ sheet.title }}</span>
+        <button onClick="{{ sheet.close }}" aria-label="Fechar" style="border:0;background:var(--muted);padding:0;margin:0;color:inherit;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="lc-icon" icon="x" size="20" hint-size="20px,20px"></x-import></button>
+      </div>
+
+      <sc-if value="{{ sheet.isBater }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+            <sc-for list="{{ sheet.types }}" as="ty" hint-placeholder-count="4">
+              <button onClick="{{ ty.pick }}" aria-pressed="{{ ty.on }}" style="margin:0;cursor:pointer;height:44px;border-radius:12px;border:1px solid {{ ty.border }};background:{{ ty.bg }};color:{{ ty.fg }};font:700 13.5px Manrope,sans-serif;display:flex;align-items:center;justify-content:center;gap:6px">{{ ty.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">Data</span><input type="date" value="{{ sheet.date }}" onChange="{{ sheet.onDate }}" style="height:56px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--background);color:var(--foreground);padding:0 12px;font:700 15px Manrope,sans-serif;font-variant-numeric:tabular-nums;outline:none;min-width:0" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">Hora</span><input type="time" value="{{ sheet.time }}" onChange="{{ sheet.onTime }}" style="height:56px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--background);color:var(--foreground);padding:0 12px;font:800 22px Manrope,sans-serif;font-variant-numeric:tabular-nums;outline:none;min-width:0" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)"></label>
+          </div>
+          <sc-if value="{{ sheet.hasHint }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:{{ sheet.hintBg }};color:{{ sheet.hintFg }};font:700 13px/1.4 Manrope,sans-serif;font-variant-numeric:tabular-nums">
+              <x-import component-from-global-scope="lc-icon" icon="{{ sheet.hintIcon }}" size="18" hint-size="18px,18px"></x-import><span style="text-wrap:pretty">{{ sheet.hintText }}</span>
+            </div>
+          </sc-if>
+          <input value="{{ sheet.note }}" onChange="{{ sheet.onNote }}" placeholder="Observação (opcional)" style="height:48px;box-sizing:border-box;border-radius:14px;border:1px solid var(--input);background:var(--background);color:var(--foreground);padding:0 14px;font:500 15px Manrope,sans-serif;outline:none" style-focus="border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklab,var(--ring) 30%,transparent)">
+          <button onClick="{{ sheet.save }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))" style-active="transform:translateY(1px)">Salvar batida</button>
+          <button onClick="{{ sheet.useOcr }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;color:var(--foreground);display:flex;align-items:center;justify-content:center;gap:8px;font:700 14px Manrope,sans-serif"><x-import component-from-global-scope="lc-icon" icon="camera" size="18" hint-size="18px,18px"></x-import><span style="text-decoration:underline;text-underline-offset:3px">Usar foto do comprovante</span></button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ sheet.isLendo }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px;align-items:center;padding-bottom:12px">
+          <div style="position:relative;width:100%;height:220px;border-radius:18px;background:repeating-linear-gradient(135deg,var(--muted) 0 10px,var(--background) 10px 20px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+            <span style="font:600 12px ui-monospace,Menlo,monospace;color:var(--muted-foreground);background:var(--card);padding:4px 8px;border-radius:6px">foto do comprovante</span>
+            <div style="position:absolute;right:10px;bottom:-6px;width:96px;height:108px"><x-import component-from-global-scope="mascote-chimp" variant="c" mood="lupa" style="width:96px;height:108px" hint-size="96px,108px"></x-import></div>
+          </div>
+          <span style="font:700 15px Manrope,sans-serif">Procurando data e hora…</span>
+          <div style="width:100%;height:6px;border-radius:3px;background:var(--muted);overflow:hidden"><div style="width:62%;height:100%;border-radius:3px;background:var(--banana)"></div></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ sheet.isOcr }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:12px;align-items:stretch">
+            <div style="width:76px;height:100px;flex:none;border-radius:12px;background:repeating-linear-gradient(135deg,var(--muted) 0 6px,var(--background) 6px 12px);border:1px solid var(--border);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;box-sizing:border-box"><span style="font:600 9.5px ui-monospace,Menlo,monospace;color:var(--muted-foreground)">foto</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:0">
+              <span style="display:flex;align-items:center;gap:6px;font:800 13px Manrope,sans-serif;color:var(--positive)"><x-import component-from-global-scope="lc-icon" icon="scan-line" size="16" hint-size="16px,16px"></x-import>Leitura com boa confiança</span>
+              <span style="font:600 13px/1.35 Manrope,sans-serif">Lumen Software Ltda</span>
+              <span style="font:500 12px/1.35 Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">NSR 000184522 · CNPJ 12.345.678/0001-90</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">Data lida</span><input type="date" value="{{ sheet.ocrDate }}" onChange="{{ sheet.onOcrDate }}" style="height:56px;box-sizing:border-box;border-radius:14px;border:2px solid var(--banana);background:var(--background);color:var(--foreground);padding:0 12px;font:700 15px Manrope,sans-serif;font-variant-numeric:tabular-nums;outline:none;min-width:0"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font:700 12px Manrope,sans-serif;color:var(--muted-foreground)">Hora lida</span><input type="time" value="{{ sheet.ocrTime }}" onChange="{{ sheet.onOcrTime }}" style="height:56px;box-sizing:border-box;border-radius:14px;border:2px solid var(--banana);background:var(--background);color:var(--foreground);padding:0 12px;font:800 22px Manrope,sans-serif;font-variant-numeric:tabular-nums;outline:none;min-width:0"></label>
+          </div>
+          <span style="font:600 12.5px/1.4 Manrope,sans-serif;color:var(--muted-foreground);font-variant-numeric:tabular-nums">Vai entrar como <b style="color:var(--foreground)">{{ sheet.typeName }}</b>. Toque nos campos para corrigir.</span>
+          <button onClick="{{ sheet.confirmOcr }}" style="border:0;margin:0;cursor:pointer;height:56px;width:100%;border-radius:16px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;gap:10px;font:800 16px Manrope,sans-serif;box-shadow:inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground))"><x-import component-from-global-scope="lc-icon" icon="check" size="20" hint-size="20px,20px"></x-import>Confirmar batida</button>
+          <button onClick="{{ sheet.useOcr }}" style="border:0;background:none;margin:0;cursor:pointer;height:44px;color:var(--foreground);font:700 14px Manrope,sans-serif">Tirar outra foto</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ dialog.open }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div onClick="{{ dialog.cancel }}" style="position:absolute;inset:0;background:var(--scrim)"></div>
+      <div role="alertdialog" style="position:relative;width:100%;border-radius:24px;background:var(--card);padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 40px -12px rgba(0,0,0,.35)">
+        <span style="font:600 21px/1.2 Fredoka,sans-serif">Excluir conta?</span>
+        <span style="font:500 14px/1.5 Manrope,sans-serif;color:var(--muted-foreground);text-wrap:pretty">Apaga batidas, cofre e convites deste aparelho e do servidor. Não dá para desfazer.</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <button onClick="{{ dialog.cancel }}" style="margin:0;cursor:pointer;height:48px;border-radius:14px;border:1px solid var(--input);background:var(--card);color:var(--foreground);font:700 14.5px Manrope,sans-serif">Cancelar</button>
+          <button onClick="{{ dialog.confirm }}" style="border:0;margin:0;cursor:pointer;height:48px;border-radius:14px;background:var(--destructive);color:var(--destructive-foreground);font:800 14.5px Manrope,sans-serif">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div aria-live="polite" style="position:absolute;left:12px;right:12px;top:40px;z-index:40;display:flex;justify-content:center;pointer-events:none;transform:{{ toast.y }};opacity:{{ toast.o }};transition:transform .25s,opacity .25s">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;background:var(--foreground);color:var(--background);font:700 13.5px/1.35 Manrope,sans-serif;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);font-variant-numeric:tabular-nums">
+      <span style="color:var(--banana);display:flex"><x-import component-from-global-scope="lc-icon" icon="{{ toast.icon }}" size="18" hint-size="18px,18px"></x-import></span>{{ toast.text }}
+    </div>
+  </div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:820},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;hoje&quot;,&quot;periodo&quot;,&quot;dia&quot;,&quot;salario&quot;,&quot;cofre-criar&quot;,&quot;ajustes&quot;,&quot;login&quot;,&quot;empresa&quot;,&quot;instalar&quot;,&quot;notificacoes&quot;],&quot;default&quot;:&quot;hoje&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sheet&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;bater&quot;,&quot;ocr-lendo&quot;,&quot;ocr&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;vault&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;locked&quot;,&quot;open&quot;,&quot;none&quot;],&quot;default&quot;:&quot;locked&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;step&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;min&quot;:1,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;},&quot;prefill&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dayId&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;2026-10-14&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = (() => {
+    const p = this.props || {};
+    const pre = !!p.prefill;
+    return {
+      screen: p.screen || 'hoje', theme: p.theme || 'light', sheet: p.sheet || null,
+      vault: p.vault || 'locked', offline: !!p.offline, step: +(p.step || 1),
+      punches: ['09:02', '13:28', null, null], clock: '14:21',
+      form: { type: 2, date: '2026-10-16', time: '14:21', note: '' },
+      ocr: { date: '2026-10-16', time: '14:19' },
+      pending: p.offline ? 1 : 0,
+      pw: '', pwShow: false, pwErr: '',
+      np1: pre ? 'banana-no-galho-42' : '', np2: pre ? 'banana-no-galho-42' : '', saved: false,
+      dayId: p.dayId || '2026-10-14', edits: {}, types: {}, notes: {},
+      filter: 'todos', notif: { almoco: true, saida: true },
+      onb: 'convite', email: '', dialog: false, toast: null
+    };
+  })();
+  DAYS = [
+    ['2026-10-19', 'seg', 19, 'futuro'], ['2026-10-16', 'sex', 16, 'hoje'], ['2026-10-15', 'qui', 15, 'incompleto'],
+    ['2026-10-14', 'qua', 14, 'curto'], ['2026-10-13', 'ter', 13, 'ok', 18], ['2026-10-12', 'seg', 12, 'feriado'],
+    ['2026-10-09', 'sex', 9, 'ok', 40], ['2026-10-08', 'qui', 8, 'ok', -57], ['2026-10-07', 'qua', 7, 'ok', 35],
+    ['2026-10-06', 'ter', 6, 'sem'], ['2026-10-05', 'seg', 5, 'ok', 8], ['2026-10-02', 'sex', 2, 'ok', 60],
+    ['2026-10-01', 'qui', 1, 'ok', -20], ['2026-09-30', 'qua', 30, 'ok', 15], ['2026-09-29', 'ter', 29, 'atestado'],
+    ['2026-09-28', 'seg', 28, 'ok', 22], ['2026-09-25', 'sex', 25, 'ok', 0], ['2026-09-24', 'qui', 24, 'ok', 48],
+    ['2026-09-23', 'qua', 23, 'ok', -35], ['2026-09-22', 'ter', 22, 'ok', 4], ['2026-09-21', 'seg', 21, 'ok', 12]
+  ];
+  LABELS = ['Entrada', 'Saída almoço', 'Volta almoço', 'Saída'];
+  TYPES = [['normal', 'Normal'], ['falta', 'Falta'], ['atestado', 'Atestado'], ['ferias', 'Férias'], ['folga', 'Folga'], ['abono', 'Abono']];
+
+  componentWillUnmount() { clearTimeout(this._tt); clearTimeout(this._ot); }
+  m(t) { if (!t) return null; const [h, mm] = t.split(':').map(Number); return h * 60 + mm; }
+  t(m) { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+  hm(min) { const a = Math.abs(min); return `${Math.floor(a / 60)}h${String(a % 60).padStart(2, '0')}`; }
+  sg(min) { return (min > 0 ? '+' : min < 0 ? '−' : '±') + this.hm(min); }
+  col(min) { return min > 0 ? 'var(--positive)' : min < 0 ? 'var(--negative)' : 'var(--muted-foreground)'; }
+  tint(v, p = 12) { return `color-mix(in oklab,var(--${v}) ${p}%,var(--card))`; }
+  toast(text, icon = 'circle-check') { clearTimeout(this._tt); this.setState({ toast: { text, icon } }); this._tt = setTimeout(() => this.setState({ toast: null }), 2600); }
+  go(screen) { this.setState({ screen, sheet: null }); }
+
+  basePunches(row) {
+    const [, , d, kind, saldo] = row;
+    if (kind === 'hoje') return this.state.punches;
+    if (kind === 'curto') return ['08:40', '12:05', '12:47', '18:50'];
+    if (kind === 'incompleto') return ['08:58', '12:31', '13:30', null];
+    if (kind !== 'ok') return [null, null, null, null];
+    const e = 540 + ((d * 7) % 11) - 5, sa = 750 + ((d * 3) % 9) - 4, va = sa + 60 + (d % 3), s = e + 528 + saldo + (va - sa);
+    return [e, sa, va, s].map(x => this.t(x));
+  }
+  info(row) {
+    const [iso, dow, d, kind] = row, S = this.state;
+    const p = S.edits[iso] || this.basePunches(row);
+    const type = S.types[iso] || (kind === 'atestado' ? 'atestado' : kind === 'feriado' ? 'feriado' : 'normal');
+    const M = p.map(x => this.m(x)), n = M.filter(x => x != null).length;
+    let worked = null, saldo = null, lunch = null; const alerts = [];
+    if (M[0] != null && M[1] != null) { worked = M[1] - M[0]; if (M[2] != null && M[3] != null) worked += M[3] - M[2]; }
+    if (M[1] != null && M[2] != null) lunch = M[2] - M[1];
+    if (type === 'normal') {
+      if (n === 4) saldo = worked - 528;
+      if (lunch != null && lunch < 60) alerts.push({ t: `Almoço de ${lunch} min`, s: 'O mínimo é 1h para jornada acima de 6h (CLT).' });
+      if (n > 0 && n < 4 && kind !== 'hoje') alerts.push({ t: `${n} de 4 batidas`, s: `Falta ${['a entrada', 'a saída do almoço', 'a volta do almoço', 'a saída'][M.findIndex(x => x == null)]}.` });
+      if (n === 0 && kind !== 'futuro' && kind !== 'hoje') alerts.push({ t: 'Dia sem registro', s: 'Adicione as batidas ou marque o tipo do dia.' });
+    } else if (type === 'falta') saldo = -528;
+    else if (type !== 'feriado') saldo = 0;
+    return { iso, dow, d, kind, p, type, n, worked, saldo, lunch, alerts };
+  }
+  summary() {
+    let ex = 0, db = 0, pend = 0; const infos = this.DAYS.map(r => this.info(r));
+    infos.forEach(i => { if (i.kind === 'hoje' || i.kind === 'futuro') return; if (i.saldo != null) { if (i.saldo > 0) ex += i.saldo; else db += i.saldo; } if (i.alerts.length) pend++; });
+    return { infos, ex, db, saldo: ex + db, pend };
+  }
+  openSheet(type) {
+    const S = this.state, n = S.punches.filter(Boolean).length;
+    const ty = type != null ? type : Math.min(n, 3);
+    this.setState({ sheet: 'bater', form: { type: ty, date: '2026-10-16', time: type != null && S.punches[type] ? S.punches[type] : S.clock, note: '' } });
+  }
+  commit(type, time, viaOcr) {
+    const S = this.state, p = [...S.punches], had = !!p[type]; p[type] = time;
+    const next = { punches: p, sheet: null };
+    if (!had && type === 2) next.clock = '18:46';
+    if (!had && type === 3) next.clock = '18:47';
+    if (S.offline) next.pending = S.pending + 1;
+    this.setState(next);
+    const msg = ['Bom dia! Entrada às', 'Bom almoço! Saída às', 'De volta ao galho! Volta às', 'Até amanhã! Saída às'][type];
+    this.toast(S.offline ? 'Salvo no aparelho. Sobe quando o sinal voltar.' : viaOcr ? `Batida das ${time} lida do comprovante.` : `${msg} ${time}.`, S.offline ? 'cloud-off' : 'banana');
+  }
+  useOcr() { clearTimeout(this._ot); this.setState({ sheet: 'ocr-lendo' }); this._ot = setTimeout(() => this.setState({ sheet: 'ocr', ocr: { date: '2026-10-16', time: '14:19' } }), 1700); }
+
+  renderVals() {
+    const S = this.state, scr = S.screen;
+    const sum = this.summary();
+    const P = S.punches.map(x => this.m(x)), n = P.filter(x => x != null).length, now = this.m(S.clock);
+    const pred = [540, (P[0] ?? 540) + 240, (P[1] ?? 780) + 60, (P[0] ?? 540) + 528 + (P[2] != null && P[1] != null ? P[2] - P[1] : 60)];
+    let worked = 0; if (P[0] != null && P[1] != null) worked = P[1] - P[0]; else if (P[0] != null) worked = now - P[0];
+    if (P[2] != null) worked += (P[3] != null ? P[3] : now) - P[2];
+    const daySaldo = n === 4 ? worked - 528 : null;
+    const lunch = P[1] != null && P[2] != null ? P[2] - P[1] : null;
+    let mood = 'almoco';
+    if (S.offline) mood = 'offline'; else if (n === 0) mood = 'boasvindas'; else if (n === 1) mood = 'tranquilo'; else if (n === 2) mood = 'almoco';
+    else if (n === 3) mood = now >= pred[3] - 30 ? 'saida' : 'tranquilo'; else mood = daySaldo > 0 ? 'feliz' : daySaldo < 0 ? 'preocupado' : 'tranquilo';
+    const longL = ['Entrada', 'Saída para o almoço', 'Volta do almoço', 'Saída'];
+    let nextLabel, nextTitle, nextSub;
+    if (n < 4) {
+      const diff = pred[n] - now;
+      nextLabel = 'Próximo'; nextTitle = `${longL[n]} às ${this.t(pred[n])}`;
+      const when = diff > 0 ? `em ${diff < 60 ? diff + ' min' : this.hm(diff)}` : diff === 0 ? 'agora' : `passou ${-diff} min`;
+      nextSub = n === 2 ? `${when} · almoço de 1h` : n === 3 ? `${when} · fecha 8h48` : when;
+    } else { nextLabel = 'Dia fechado'; nextTitle = `Saldo do dia ${this.sg(daySaldo)}`; nextSub = 'Bom descanso. Amanhã tem mais galho.'; }
+    const rows = [0, 1, 2, 3].map(i => {
+      const done = P[i] != null, isNext = i === n;
+      return {
+        label: this.LABELS[i], aria: done ? `Editar ${this.LABELS[i]}` : `Bater ${this.LABELS[i]}`, done, isNext,
+        time: done ? S.punches[i] : this.t(pred[i]), pre: done ? '' : 'prev.', timeColor: done ? 'var(--foreground)' : 'var(--muted-foreground)',
+        labelWeight: isNext ? 800 : 600,
+        dotBg: done ? 'var(--foreground)' : isNext ? 'var(--primary)' : 'transparent', dotBorder: done || isNext ? 'var(--foreground)' : 'var(--input)',
+        rowBg: isNext ? 'color-mix(in oklab,var(--primary) 18%,var(--card))' : 'transparent', editOpacity: done ? 1 : 0,
+        edit: () => this.openSheet(done ? i : undefined)
+      };
+    });
+    const ctaDisabled = n === 4;
+    const h = {
+      mood, nextLabel, nextTitle, nextSub, n, doneTxt: `${n} de 4`,
+      worked: this.hm(Math.max(0, worked)), daySaldo: daySaldo == null ? '—' : this.sg(daySaldo), daySaldoColor: daySaldo == null ? 'var(--muted-foreground)' : this.col(daySaldo),
+      daySaldoSub: daySaldo == null ? 'fecha na saída' : 'jornada 8h48',
+      hasAlert: lunch != null && lunch < 60, alertText: `Almoço de ${lunch} min · o mínimo é 1h`,
+      ctaLabel: ctaDisabled ? 'Dia completo' : 'Bater ponto', ctaSub: ctaDisabled ? '4 de 4 batidas' : longL[Math.min(n, 3)].toLowerCase(),
+      ctaIcon: ctaDisabled ? 'circle-check' : 'fingerprint', ctaDisabled,
+      ctaBg: ctaDisabled ? 'var(--muted)' : 'var(--primary)', ctaFg: ctaDisabled ? 'var(--muted-foreground)' : 'var(--primary-foreground)',
+      ctaShadow: ctaDisabled ? 'none' : 'inset 0 -3px 0 color-mix(in oklab,var(--primary) 70%,var(--foreground)),0 8px 20px -8px color-mix(in oklab,var(--primary) 70%,transparent)',
+      cta: () => !ctaDisabled && this.openSheet()
+    };
+
+    const statusOf = i => {
+      if (i.kind === 'hoje') return ['Hoje', 'var(--primary)', 'var(--primary-foreground)'];
+      if (i.kind === 'futuro') return null;
+      if (i.type === 'feriado') return ['Feriado', 'var(--muted)', 'var(--muted-foreground)'];
+      if (i.type === 'falta') return ['Falta', this.tint('negative'), 'var(--negative)'];
+      if (i.type !== 'normal') return [this.TYPES.find(t => t[0] === i.type)[1], 'var(--muted)', 'var(--muted-foreground)'];
+      if (i.n === 0) return ['Sem registro', this.tint('pending'), 'var(--pending)'];
+      if (i.n < 4) return [`${i.n} de 4 batidas`, this.tint('warning'), 'var(--warning)'];
+      if (i.lunch != null && i.lunch < 60) return ['Almoço curto', this.tint('warning'), 'var(--warning)'];
+      return null;
+    };
+    const list = sum.infos.filter(i => S.filter === 'todos' || (i.alerts.length && i.kind !== 'hoje'));
+    const days = []; let lastMon = null;
+    list.forEach(i => {
+      const mon = i.iso.slice(5, 7);
+      if (mon !== lastMon) { days.push({ isHeader: true, isDay: false, label: mon === '10' ? 'Outubro' : 'Setembro' }); lastMon = mon; }
+      const st = statusOf(i);
+      const worked = i.kind === 'hoje' ? 'em andamento' : i.kind === 'futuro' ? 'ainda não chegou' : i.type === 'feriado' ? 'N. Sra. Aparecida' : i.type !== 'normal' ? (i.type === 'falta' ? 'sem abono' : 'abonado · 8h48') : i.n === 4 ? this.hm(i.worked) : i.n === 0 ? '—' : 'incompleto';
+      days.push({
+        isHeader: false, isDay: true, dow: i.dow, d: i.d, worked, hasBadge: !!st, bTxt: st ? st[0] : '', bBg: st ? st[1] : '', bFg: st ? st[2] : '',
+        saldo: i.saldo != null ? this.sg(i.saldo) : '—', sColor: i.saldo != null ? this.col(i.saldo) : 'var(--muted-foreground)',
+        rowBg: i.kind === 'hoje' ? 'color-mix(in oklab,var(--primary) 12%,var(--card))' : 'transparent', opacity: i.kind === 'futuro' ? .55 : 1,
+        open: () => i.kind === 'hoje' ? this.go('hoje') : i.kind === 'futuro' ? null : this.setState({ screen: 'dia', dayId: i.iso })
+      });
+    });
+    const per = {
+      saldo: this.sg(sum.saldo), saldoColor: this.col(sum.saldo), extras: this.sg(sum.ex), debito: this.sg(sum.db), pendCount: String(sum.pend),
+      mood: sum.saldo > 0 ? 'feliz' : sum.saldo < 0 ? 'preocupado' : 'tranquilo',
+      filters: [['todos', 'Todos os dias'], ['pend', `Pendências (${sum.pend})`]].map(([id, label]) => {
+        const on = S.filter === id; return { label, bg: on ? 'var(--card)' : 'transparent', fg: on ? 'var(--foreground)' : 'var(--muted-foreground)', shadow: on ? '0 1px 3px rgba(0,0,0,.12)' : 'none', pick: () => this.setState({ filter: id }) };
+      }),
+      days, prev: () => this.toast('Período anterior: 20 ago → 19 set', 'calendar-days'), next: () => this.toast('O próximo período começa em 20 out', 'calendar-days')
+    };
+
+    const dRow = this.DAYS.find(r => r[0] === S.dayId) || this.DAYS[3];
+    const di = this.info(dRow);
+    const MON = { '09': 'set', '10': 'out' };
+    const normal = di.type === 'normal';
+    const day = {
+      title: `${di.dow}, ${di.d} ${MON[di.iso.slice(5, 7)]}`, alerts: di.alerts,
+      types: this.TYPES.filter(t => t[0] !== 'feriado').map(([id, label]) => {
+        const on = di.type === id; return { label, on, bg: on ? 'var(--foreground)' : 'var(--card)', fg: on ? 'var(--background)' : 'var(--foreground)', border: on ? 'var(--foreground)' : 'var(--input)', pick: () => this.setState(s => ({ types: { ...s.types, [di.iso]: id } })) };
+      }),
+      rows: [0, 1, 2, 3].map(k => ({
+        label: this.LABELS[k], value: di.p[k] || '', line: k < 3 ? 'var(--border)' : 'transparent',
+        onChange: e => { const v = e.target.value || null; this.setState(s => { const cur = [...(s.edits[di.iso] || di.p)]; cur[k] = v; return { edits: { ...s.edits, [di.iso]: cur } }; }); }
+      })),
+      dim: normal ? 1 : .5, hasTypeNote: !normal, typeNote: di.type === 'falta' ? 'Falta sem abono desconta a jornada inteira (8h48).' : di.type === 'feriado' ? 'Feriado da empresa: não conta jornada.' : 'Dia abonado: conta como 8h48 trabalhadas.',
+      worked: di.worked != null && (di.n === 4 || di.n === 2) ? this.hm(di.worked) : '—', saldo: di.saldo != null ? this.sg(di.saldo) : '—', saldoColor: di.saldo != null ? this.col(di.saldo) : 'var(--muted-foreground)',
+      note: S.notes[di.iso] || '', onNote: e => { const v = e.target.value; this.setState(s => ({ notes: { ...s.notes, [di.iso]: v } })); },
+      save: () => { this.setState({ screen: 'periodo' }); this.toast(`Dia ${di.d} salvo`); }, back: () => this.go('periodo')
+    };
+
+    const sal = {
+      locked: S.vault === 'locked', none: S.vault === 'none', open: S.vault === 'open',
+      pw: S.pw, pwType: S.pwShow ? 'text' : 'password', pwIcon: S.pwShow ? 'eye-off' : 'eye', hasErr: !!S.pwErr, pwErr: S.pwErr, pwBorder: S.pwErr ? 'var(--negative)' : 'var(--input)',
+      onPw: e => this.setState({ pw: e.target.value, pwErr: '' }), togglePw: () => this.setState({ pwShow: !S.pwShow }),
+      unlock: () => { const pw = this.state.pw; if (pw.length < 4) { this.setState({ pwErr: pw ? 'Senha incorreta. Confira e tente de novo.' : 'Digite a senha do cofre.' }); return; } this.setState({ vault: 'open', pw: '', pwErr: '' }); this.toast('Cofre aberto', 'lock-open'); },
+      onKey: e => { if (e.key === 'Enter') sal.unlock(); },
+      forgot: () => this.toast('Digite o código de recuperação no lugar da senha', 'key-round'),
+      lock: () => { this.setState({ vault: 'locked' }); this.toast('Cofre trancado', 'lock'); },
+      create: () => this.setState({ screen: 'cofre-criar', step: 1 })
+    };
+
+    const pw = S.np1; let sc = 0;
+    if (pw.length >= 8) sc++; if (pw.length >= 14) sc++; if (/[0-9]/.test(pw) && /[a-zA-Z]/.test(pw)) sc++; if (/[^A-Za-z0-9]/.test(pw) || /[A-Z]/.test(pw)) sc++;
+    if (pw.length < 8) sc = Math.min(sc, 1);
+    const sCol = sc <= 1 ? 'var(--negative)' : sc === 2 ? 'var(--warning)' : 'var(--positive)';
+    const canNext = pw.length >= 8 && sc >= 2 && S.np1 === S.np2;
+    const cc = {
+      s1: S.step === 1, s2: S.step === 2, stepTxt: `${S.step} de 2`, np1: S.np1, np2: S.np2,
+      on1: e => this.setState({ np1: e.target.value }), on2: e => this.setState({ np2: e.target.value }),
+      bars: [0, 1, 2, 3].map(i => ({ bg: pw && i < Math.max(sc, 1) ? sCol : 'var(--muted)' })),
+      strLabel: !pw ? 'Use 8 ou mais caracteres. Uma frase curta funciona bem.' : pw.length < 8 ? 'Muito curta' : ['Fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'][sc], strColor: pw ? sCol : 'var(--muted-foreground)',
+      mismatch: S.np2.length > 0 && S.np1 !== S.np2, np2Border: S.np2.length > 0 && S.np1 !== S.np2 ? 'var(--negative)' : 'var(--input)',
+      cantNext: !canNext, nextOpacity: canNext ? 1 : .45, next: () => canNext && this.setState({ step: 2 }),
+      back: () => S.step === 2 ? this.setState({ step: 1 }) : this.go('salario'),
+      copy: () => this.toast('Código copiado', 'copy'), download: () => this.toast('chimponto-recuperacao.txt salvo', 'download'),
+      saved: S.saved, toggleSaved: () => this.setState({ saved: !S.saved }), chkBg: S.saved ? 'var(--foreground)' : 'transparent', chkBorder: S.saved ? 'var(--foreground)' : 'var(--input)',
+      cantFinish: !S.saved, finishOpacity: S.saved ? 1 : .45,
+      finish: () => { if (!this.state.saved) return; this.setState({ vault: 'open', screen: 'salario', step: 1 }); this.toast('Cofre criado e aberto', 'lock-open'); }
+    };
+
+    const sw = (key, label, sub, first) => {
+      const on = S.notif[key]; return {
+        label, sub, on, line: first ? 'transparent' : 'var(--border)', track: on ? 'var(--foreground)' : 'var(--muted)', trackBorder: on ? 'var(--foreground)' : 'var(--input)', knob: on ? 'translateX(18px)' : 'translateX(0)',
+        toggle: () => this.setState(s => ({ notif: { ...s.notif, [key]: !s.notif[key] } }))
+      };
+    };
+    const item = (icon, label, sub, act, first, danger) => ({ icon, label, sub, act, line: first ? 'transparent' : 'var(--border)', color: danger ? 'var(--destructive)' : 'var(--foreground)', iconColor: danger ? 'var(--destructive)' : 'var(--muted-foreground)' });
+    const T = (m, i) => () => this.toast(m, i);
+    const aj = {
+      switches: [sw('almoco', 'Volta do almoço', '10 min antes · “Hora de voltar pro galho!”', true), sw('saida', 'Saída', '10 min antes · “Mochila nas costas?”')],
+      groups: [
+        { title: 'Cofre', items: [
+          S.vault === 'open' ? item('lock', 'Trancar cofre agora', 'Tranca sozinho após 5 min', () => { this.setState({ vault: 'locked' }); this.toast('Cofre trancado', 'lock'); }, true) : item('lock-open', 'Abrir cofre', 'Necessário para ver o salário', () => this.go('salario'), true),
+          item('key-round', 'Trocar senha do cofre', 'Diferente da senha de login', T('Abra o cofre para trocar a senha', 'key-round')),
+          item('shield-check', 'Código de recuperação', 'Gerado em 02 out 2026', T('Gere um novo código com o cofre aberto', 'shield-check'))] },
+        { title: 'Dados salariais', items: [
+          item('wallet', 'Salário e descontos', S.vault === 'open' ? 'R$ 8.500,00 · 3 descontos fixos' : 'R$ ••••• · cofre trancado', () => this.go('salario'), true),
+          item('calendar-days', 'Adiantamento', 'Dia 20 · 40% do salário', T('Ajuste com o cofre aberto', 'wallet'))] },
+        { title: 'Empresa', items: [
+          item('building-2', 'Lumen Software Ltda', 'Jornada 8h48 · seg a sex · almoço 1h', T('Só o admin da empresa edita a jornada', 'building-2'), true),
+          item('calendar', 'Feriados', '12 cadastrados · próximo: 2 nov', T('Lista de feriados', 'calendar')),
+          item('user-plus', 'Convidar colegas', 'Cada um vê só os próprios dados', T('Link de convite copiado', 'user-plus'))] },
+        { title: 'Privacidade e conta', items: [
+          item('shield', 'Privacidade', 'O que fica no aparelho e o que sobe', T('Política de privacidade', 'shield'), true),
+          item('download', 'Exportar meus dados', 'CSV com batidas e saldos', T('chimponto-batidas.csv gerado', 'download')),
+          item('trash-2', 'Excluir conta', 'Apaga tudo, sem volta', () => this.setState({ dialog: true }), false, true)] }
+      ],
+      themes: [['light', 'Claro', 'sun'], ['dark', 'Escuro', 'moon'], ['system', 'Sistema', 'monitor']].map(([id, label, icon]) => {
+        const on = (S.themePick || S.theme) === id; return { label, icon, on, bg: on ? 'var(--card)' : 'transparent', fg: on ? 'var(--foreground)' : 'var(--muted-foreground)', shadow: on ? '0 1px 3px rgba(0,0,0,.12)' : 'none', pick: () => this.setState({ theme: id === 'system' ? (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : id, themePick: id }) };
+      })
+    };
+
+    const onb = {
+      email: S.email, onEmail: e => this.setState({ email: e.target.value }),
+      google: () => this.go('empresa'), magic: () => { this.toast(`Link mágico enviado para ${S.email || 'marina@lumen.dev'}`, 'mail'); this.go('empresa'); },
+      isConvite: S.onb === 'convite', isCriar: S.onb === 'criar', pickConvite: () => this.setState({ onb: 'convite' }), pickCriar: () => this.setState({ onb: 'criar' }),
+      convBorder: S.onb === 'convite' ? 'var(--foreground)' : 'var(--border)', criarBorder: S.onb === 'criar' ? 'var(--foreground)' : 'var(--border)',
+      toInstall: () => this.go('instalar'), toNotif: () => this.go('notificacoes'),
+      enableNotif: () => { this.go('hoje'); this.toast('Lembretes ativados', 'bell'); }, skipNotif: () => this.go('hoje')
+    };
+
+    const view = S.sheet || this._lastSheet || 'bater'; if (S.sheet) this._lastSheet = S.sheet;
+    const f = S.form, ft = this.m(f.time);
+    let hint = null;
+    if (f.type === 2 && P[1] != null && ft != null && ft - P[1] < 60) hint = ['warning', 'triangle-alert', `Almoço de ${ft - P[1]} min. O mínimo é 1h; volta prevista às ${this.t(P[1] + 60)}.`];
+    if (f.type === 3 && P[0] != null && P[1] != null && P[2] != null && ft != null) { const s = (P[1] - P[0]) + (ft - P[2]) - 528; hint = [s < 0 ? 'negative' : 'positive', s < 0 ? 'clock' : 'circle-check', `Com essa saída, o saldo do dia fica ${this.sg(s)}.`]; }
+    const sheet = {
+      pe: S.sheet ? 'auto' : 'none', scrim: S.sheet ? 1 : 0, y: S.sheet ? 'translateY(0)' : 'translateY(105%)',
+      title: view === 'bater' ? 'Bater ponto' : view === 'ocr-lendo' ? 'Lendo comprovante' : 'Confira a leitura',
+      isBater: view === 'bater', isLendo: view === 'ocr-lendo', isOcr: view === 'ocr',
+      close: () => { clearTimeout(this._ot); this.setState({ sheet: null }); },
+      types: this.LABELS.map((label, i) => { const on = f.type === i; return { label, on, bg: on ? 'var(--foreground)' : 'var(--card)', fg: on ? 'var(--background)' : 'var(--foreground)', border: on ? 'var(--foreground)' : 'var(--input)', pick: () => this.setState(s => ({ form: { ...s.form, type: i } })) }; }),
+      date: f.date, time: f.time, note: f.note,
+      onDate: e => { const v = e.target.value; this.setState(s => ({ form: { ...s.form, date: v } })); },
+      onTime: e => { const v = e.target.value; this.setState(s => ({ form: { ...s.form, time: v } })); },
+      onNote: e => { const v = e.target.value; this.setState(s => ({ form: { ...s.form, note: v } })); },
+      hasHint: !!hint, hintBg: hint ? this.tint(hint[0]) : '', hintFg: hint ? `var(--${hint[0]})` : '', hintIcon: hint ? hint[1] : 'info', hintText: hint ? hint[2] : '',
+      save: () => this.state.form.time && this.commit(this.state.form.type, this.state.form.time),
+      useOcr: () => this.useOcr(),
+      ocrDate: S.ocr.date, ocrTime: S.ocr.time, typeName: longL[f.type].toLowerCase(),
+      onOcrDate: e => { const v = e.target.value; this.setState(s => ({ ocr: { ...s.ocr, date: v } })); },
+      onOcrTime: e => { const v = e.target.value; this.setState(s => ({ ocr: { ...s.ocr, time: v } })); },
+      confirmOcr: () => this.commit(this.state.form.type, this.state.ocr.time, true)
+    };
+
+    const tabOf = { hoje: 'hoje', periodo: 'periodo', dia: 'periodo', salario: 'salario', 'cofre-criar': 'salario', ajustes: 'ajustes' };
+    const activeTab = tabOf[scr];
+    const tabs = [['hoje', 'Hoje', 'clock'], ['periodo', 'Período', 'calendar-days'], ['salario', 'Salário', 'wallet'], ['ajustes', 'Ajustes', 'settings']].map(([id, label, icon]) => {
+      const on = activeTab === id; return { label, icon, current: on ? 'page' : undefined, bg: on ? 'var(--primary)' : 'transparent', fg: on ? 'var(--primary-foreground)' : 'var(--muted-foreground)', labelColor: on ? 'var(--foreground)' : 'var(--muted-foreground)', weight: on ? 800 : 600, go: () => this.go(id) };
+    });
+    const names = { hoje: 'Hoje', periodo: 'Período', dia: 'Dia', salario: 'Salário', 'cofre-criar': 'Criar cofre', ajustes: 'Ajustes', login: 'Login', empresa: 'Empresa', instalar: 'Instalar', notificacoes: 'Notificações' };
+    return {
+      themeClass: S.theme === 'dark' ? 'dark' : '', screenLabel: names[scr] || scr,
+      clock: S.clock, wifiIcon: S.offline ? 'wifi-off' : 'wifi', offline: S.offline,
+      showSync: S.offline || S.pending > 0, syncLabel: S.offline ? `Offline · ${S.pending} na fila` : `${S.pending} na fila`,
+      is: { hoje: scr === 'hoje', periodo: scr === 'periodo', dia: scr === 'dia', salario: scr === 'salario', cofreCriar: scr === 'cofre-criar', ajustes: scr === 'ajustes', login: scr === 'login', empresa: scr === 'empresa', instalar: scr === 'instalar', notificacoes: scr === 'notificacoes' },
+      showTabs: !!activeTab && scr !== 'dia' && scr !== 'cofre-criar', tabs,
+      h, rows, per, day, sal, cc, aj, onb, sheet,
+      goPeriodo: () => this.go('periodo'), goAjustes: () => this.go('ajustes'),
+      dialog: { open: S.dialog, cancel: () => this.setState({ dialog: false }), confirm: () => { this.setState({ dialog: false, screen: 'login' }); this.toast('Conta excluída. Até logo!', 'trash-2'); } },
+      toast: { y: S.toast ? 'translateY(0)' : 'translateY(-16px)', o: S.toast ? 1 : 0, text: S.toast ? S.toast.text : '', icon: S.toast ? S.toast.icon : 'circle-check' }
+    };
+  }
+}
+
+</script>
+</body>
+</html>
