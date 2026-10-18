@@ -4,6 +4,7 @@ import {
   formatBalance,
   formatDuration,
   formatLongDate,
+  formatShortDuration,
   parseDuration,
   spokenBalance,
 } from "./format";
@@ -16,6 +17,18 @@ describe("formatDuration", () => {
     [-35, "0h35"],
   ])("%i min -> %s", (min, expected) => {
     expect(formatDuration(min)).toBe(expected);
+  });
+});
+
+describe("formatShortDuration", () => {
+  it.each([
+    [53, "53 min"],
+    [60, "1h"],
+    [480, "8h"],
+    [65, "1h05"],
+    [-7, "7 min"],
+  ])("%i min -> %s", (min, expected) => {
+    expect(formatShortDuration(min)).toBe(expected);
   });
 });
 

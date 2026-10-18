@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
 import { useSignedInUser } from "@/auth/auth";
 
-/** Vínculo do usuário com a empresa. Na v1, cada usuário tem no máximo um. */
-export type Membership = { companyId: string; role: "admin" | "member" };
+/** Vínculo do usuário com a empresa, com as regras dela. Na v1, cada usuário tem no máximo um. */
+export type Membership = { companyId: string; role: "admin" | "member"; rules: CompanyRules };
 
 /** `already_member`: o usuário já tem empresa (por exemplo, criada em outra aba). */
 export type CreateCompanyResult = "created" | "already_member" | "failed";
@@ -34,6 +34,11 @@ export function useMembership() {
     queryKey: membershipKey(user.id),
     queryFn: () => companies.membershipOf(user.id),
   });
+}
+
+/** Regras da empresa do usuário; dentro de `RequireCompany`, só ficam indefinidas ao carregar. */
+export function useCompanyRules(): CompanyRules | undefined {
+  return useMembership().data?.rules;
 }
 
 /** Cria a empresa e só retorna depois de recarregar o vínculo, que as guardas de rota leem. */

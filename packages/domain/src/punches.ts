@@ -13,7 +13,7 @@ export type LabeledPunch<P extends DayPunch> = { punch: P; label: PunchLabel };
 const POSITION_LABELS: PunchLabel[] = ["entry", "lunch_out", "lunch_return", "exit"];
 
 /** Acima disso, um dia com só 2 batidas é entrada e saída sem almoço (docs/02 §2.1 e §3). */
-const MAX_MINUTES_WITHOUT_LUNCH = 360;
+export const MAX_MINUTES_WITHOUT_LUNCH = 360;
 
 function labelAt(position: number): PunchLabel {
   return POSITION_LABELS[position] ?? (position % 2 === 0 ? "extra_out" : "extra_return");
@@ -38,22 +38,20 @@ function isEntryAndExit(first: Date, second: Date, now: Date): boolean {
 /** Batida que o usuário está montando: nova, ou a edição da batida `editingId`. */
 export type PunchCandidate = { at: Date; editingId?: string | undefined };
 
-export type PunchPreview = { label: PunchLabel };
-
 /**
- * Como o candidato entra no seu dia local, entre as batidas recebidas (de qualquer dia).
- * Alimenta o "Vai entrar como …" do sheet, recalculado a cada mudança de data ou hora.
+ * O dia local do candidato com ele dentro: as batidas desse dia (sem a que ele edita) e o rótulo
+ * que ele assume entre elas (de qualquer dia nas batidas recebidas).
  */
-export function previewPunch(
+export function labelCandidate(
   punches: DayPunch[],
   candidate: PunchCandidate,
   now: Date,
-): PunchPreview {
+): { day: DayPunch[]; label: PunchLabel } {
   const date = toLocalDate(candidate.at);
   const sameDay = othersThan(punches, candidate).filter((p) => toLocalDate(p.punchedAt) === date);
   const self: DayPunch = { id: "", punchedAt: candidate.at };
   const labeled = labelDay([...sameDay, self], now);
-  return { label: labeled.find(({ punch }) => punch === self)!.label };
+  return { day: [...sameDay, self], label: labeled.find(({ punch }) => punch === self)!.label };
 }
 
 /** Já existe outra batida no minuto do candidato? (docs/02 §2: uma batida por minuto.) */
@@ -86,7 +84,7 @@ export function daySlots<P extends DayPunch>(punches: P[], now: Date): DaySlots<
   const done = labelDay(punches, now);
   const doneSlots = done.map((d) => ({ kind: "done" as const, ...d }));
   const total = Math.max(POSITION_LABELS.length, done.length + (done.length % 2));
-  const next = previewPunch(punches, { at: truncateToMinute(now) }, now).label;
+  const next = labelCandidate(punches, { at: truncateToMinute(now) }, now).label;
   if (done.length === total) return { slots: doneSlots, next };
 
   const missing = Array.from({ length: total }, (_, i) => labelAt(i));

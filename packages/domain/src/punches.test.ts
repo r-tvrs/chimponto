@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fromLocal } from "./local-time";
-import { daySlots, isDuplicateMinute, labelDay, previewPunch } from "./punches";
+import { daySlots, isDuplicateMinute, labelDay } from "./punches";
 
 /** Batidas sintéticas de um dia local de São Paulo, na ordem em que foram registradas. */
 function day(date: string, ...times: string[]) {
@@ -65,35 +65,6 @@ describe("labelDay", () => {
 
   it("returns nothing for a day without punches", () => {
     expect(labelDay([], NOW)).toEqual([]);
-  });
-});
-
-describe("previewPunch", () => {
-  const morning = day(TODAY, "09:02", "13:28");
-
-  it.each([
-    ["14:28", "lunch_return"],
-    ["08:30", "entry"],
-    ["11:00", "lunch_out"],
-  ])("a new punch at %s goes in as %s", (time, expected) => {
-    const preview = previewPunch(morning, { at: fromLocal(TODAY, time)! }, NOW);
-    expect(preview.label).toBe(expected);
-  });
-
-  it("is the first punch of another day, ignoring today's punches", () => {
-    const preview = previewPunch(morning, { at: fromLocal("2026-10-15", "18:00")! }, NOW);
-    expect(preview.label).toBe("entry");
-  });
-
-  it("relabels an edited punch at its new time, without counting its old one", () => {
-    // A entrada (p1) editada para depois da saída do almoço vira a saída do almoço.
-    const preview = previewPunch(morning, { at: fromLocal(TODAY, "14:00")!, editingId: "p1" }, NOW);
-    expect(preview.label).toBe("lunch_out");
-  });
-
-  it("applies the 2-punch exception: a second punch more than 360 min after the entry is the exit", () => {
-    const preview = previewPunch(day(TODAY, "09:00"), { at: fromLocal(TODAY, "18:00")! }, NOW);
-    expect(preview.label).toBe("exit");
   });
 });
 

@@ -1,4 +1,4 @@
-import { type PunchSlot, toLocalTime } from "@chimponto/domain";
+import { type DaySummary, type PunchSlot, toLocalTime } from "@chimponto/domain";
 import { Check, Pencil } from "lucide-react";
 import { CachoBanana } from "@/components/cacho-banana";
 import { cn } from "@/lib/utils";
@@ -7,13 +7,18 @@ import type { Punch } from "@/punches/punches";
 
 type Row = PunchSlot<Punch>;
 
-/** Card "Batidas" da Hoje (handoff §1.5). Feita abre a edição; as outras, a próxima batida. */
+/**
+ * Card "Batidas" da Hoje (handoff §1.5). Feita abre a edição; as outras, a próxima batida. As que
+ * faltam mostram a hora prevista ("prev."), quando há.
+ */
 export function PunchesCard({
   slots,
+  forecast,
   onEdit,
   onPunch,
 }: {
   slots: Row[];
+  forecast: DaySummary["forecast"];
   onEdit: (punch: Punch) => void;
   onPunch: () => void;
 }) {
@@ -38,6 +43,7 @@ export function PunchesCard({
         <PunchRow
           key={row.kind === "done" ? row.punch.id : i}
           row={row}
+          forecast={row.kind === "done" ? undefined : forecast[row.label]}
           onEdit={onEdit}
           onPunch={onPunch}
         />
@@ -48,10 +54,12 @@ export function PunchesCard({
 
 function PunchRow({
   row,
+  forecast,
   onEdit,
   onPunch,
 }: {
   row: Row;
+  forecast: Date | undefined;
   onEdit: (punch: Punch) => void;
   onPunch: () => void;
 }) {
@@ -98,7 +106,14 @@ function PunchRow({
           !time && "text-muted-foreground",
         )}
       >
-        {time ?? "—"}
+        {time ??
+          (forecast ? (
+            <>
+              <span className="text-[11.5px] font-semibold">prev.</span> {toLocalTime(forecast)}
+            </>
+          ) : (
+            "—"
+          ))}
       </span>
       <Pencil className={cn("size-4 text-muted-foreground", !time && "invisible")} aria-hidden />
     </button>

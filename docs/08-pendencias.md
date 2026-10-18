@@ -32,10 +32,13 @@ Vindas da review do #4 (bater ponto). Comportamento atual mantido até decidir.
 | 4 | Visual do erro de minuto duplicado no sheet | Bloco tingido `negative` com `TriangleAlert`; o handoff pede borda `negative` no campo + mensagem 12,5/700 | Sheet "Bater ponto" |
 | 5 | Teste da Hoje usa `vi.mock("@/data/profile")` (o perfil lê o Supabase direto) | Mock de módulo; alternativa é injetar o perfil por Context, como `Companies` e `Punches` | `today.test.tsx`, `data/profile.ts` |
 
-Para o #5 (já previsto no ticket, registrado aqui para não perder):
+Vindas do #5 (saldo do dia). Comportamento atual mantido até decidir.
 
-- A Hoje não acompanha o relógio com a tela aberta: o rótulo da próxima batida (exceção de 2 batidas > 360 min) e a virada do dia à meia-noite só atualizam ao renderizar de novo.
-- CTA "Dia completo · 4 de 4 batidas" e hora prevista "prev." nas linhas pendentes.
+| # | Questão | Comportamento atual | Afeta |
+|---|---|---|---|
+| 7 | "Trabalhadas" conta só os pares fechados; com a volta do almoço batida, o tile não anda até a saída | Pares fechados | Tile "Trabalhadas" |
+
+`summarizeDay` ainda não considera feriados nem tipos de dia: `expectedMinutes` vem só de `workdays` e `dailyMinutes`. Chegam com o #9 (tipo do dia) e o #11 (feriados).
 
 ## Implementação
 

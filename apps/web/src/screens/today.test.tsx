@@ -1,10 +1,11 @@
-import { fromLocal, toLocalDate } from "@chimponto/domain";
+import { type CompanyRules, companyRulesSchema, fromLocal, toLocalDate } from "@chimponto/domain";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, AuthContext } from "@/auth/auth";
+import { type Companies, CompaniesContext } from "@/company/company";
 import { ToastProvider } from "@/components/toast";
 import {
   type Punch,
@@ -18,7 +19,9 @@ import { TodayScreen } from "./today";
 // O perfil vem direto do Supabase; aqui só importa o avatar não quebrar.
 vi.mock("@/data/profile", () => ({ useProfile: () => ({ data: { display_name: "Marina" } }) }));
 
+// Sexta-feira: dia de jornada com as regras padrão.
 const TODAY = "2026-10-16";
+const SATURDAY = "2026-10-17";
 
 const auth: Auth = {
   state: { status: "signed_in", user: { id: "user-a", email: "marina@lumen.dev" } },
@@ -26,10 +29,10 @@ const auth: Auth = {
   signOut: async () => "signed_out",
 };
 
-function punch(time: string, id = `p-${time}`): Punch {
+function punch(time: string, id = `p-${time}`, date = TODAY): Punch {
   return {
     id,
-    punchedAt: fromLocal(TODAY, time)!,
+    punchedAt: fromLocal(date, time)!,
     source: "manual",
     note: null,
     updatedAt: new Date("2026-10-16T00:00:00Z"),
@@ -68,18 +71,32 @@ function fakePunches(initial: Punch[]) {
   } satisfies Punches & { failNextWith: unknown };
 }
 
-function renderToday(punches: Punches) {
+/** Empresa do usuário com as regras padrão de docs/02 §1, ou as `rules` dadas. */
+function fakeCompanies(rules: Partial<CompanyRules> = {}): Companies {
+  return {
+    membershipOf: async () => ({
+      companyId: "company-1",
+      role: "admin",
+      rules: companyRulesSchema.parse(rules),
+    }),
+    create: async () => "already_member",
+  };
+}
+
+function renderToday(punches: Punches, companies = fakeCompanies()) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={auth}>
-        <PunchesContext.Provider value={punches}>
-          <ToastProvider>
-            <MemoryRouter>
-              <TodayScreen />
-            </MemoryRouter>
-          </ToastProvider>
-        </PunchesContext.Provider>
+        <CompaniesContext.Provider value={companies}>
+          <PunchesContext.Provider value={punches}>
+            <ToastProvider>
+              <MemoryRouter>
+                <TodayScreen />
+              </MemoryRouter>
+            </ToastProvider>
+          </PunchesContext.Provider>
+        </CompaniesContext.Provider>
       </AuthContext.Provider>
     </QueryClientProvider>,
   );
@@ -145,8 +162,148 @@ describe("Batidas card", () => {
     );
 
     expect(await rows()).toHaveLength(6);
-    expect(screen.getByText("6 de 6")).toBeVisible();
-    expect(screen.getByRole("button", { name: /Bater ponto/ })).toHaveTextContent("saída extra");
+    const card = screen.getByRole("region", { name: "Batidas" });
+    expect(within(card).getByText("6 de 6")).toBeVisible();
+    expect(screen.getByRole("button", { name: /Dia completo · 6 de 6 batidas/ })).toBeEnabled();
+  });
+
+  it("shows the forecast time of the pending punches", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "14:21")!);
+    renderToday(fakePunches([punch("09:02"), punch("13:28")]));
+
+    const card = await screen.findByRole("region", { name: "Batidas" });
+    expect(within(card).getByRole("button", { name: "Bater Volta almoço" })).toHaveTextContent(
+      "prev. 14:28",
+    );
+    expect(within(card).getByRole("button", { name: "Bater Saída" })).toHaveTextContent(
+      "prev. 18:02",
+    );
+  });
+});
+
+describe("Próximo card", () => {
+  it("shows the expected lunch return and how long until it", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "14:21")!);
+    renderToday(fakePunches([punch("09:02"), punch("13:28")]));
+
+    const card = await screen.findByRole("region", { name: "Próximo" });
+    expect(within(card).getByRole("heading")).toHaveTextContent("Volta do almoço às 14:28");
+    expect(card).toHaveTextContent("em 7 min · almoço de 1h");
+  });
+
+  it("shows the expected exit after the real lunch", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "15:08")!);
+    renderToday(fakePunches([punch("09:03"), punch("13:00"), punch("14:05")]));
+
+    const card = await screen.findByRole("region", { name: "Próximo" });
+    expect(within(card).getByRole("heading")).toHaveTextContent("Saída às 18:08");
+    expect(card).toHaveTextContent("em 3h · jornada de 8h");
+  });
+
+  it("says when the expected time has passed", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "14:30")!);
+    renderToday(fakePunches([punch("09:02"), punch("13:28")]));
+
+    expect(await screen.findByRole("region", { name: "Próximo" })).toHaveTextContent(
+      "há 2 min · almoço de 1h",
+    );
+  });
+
+  it("follows the clock while the screen stays open", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    vi.setSystemTime(fromLocal(TODAY, "14:21")!);
+    renderToday(fakePunches([punch("09:02"), punch("13:28")]));
+    const card = await screen.findByRole("region", { name: "Próximo" });
+
+    act(() => vi.advanceTimersByTime(2 * 60_000));
+
+    expect(card).toHaveTextContent("em 5 min");
+  });
+
+  it("names a free punch without a time", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "10:00")!);
+    renderToday(fakePunches([punch("09:02")]));
+
+    const card = await screen.findByRole("region", { name: "Próximo" });
+    expect(within(card).getByRole("heading")).toHaveTextContent("Saída para o almoço");
+    expect(card).toHaveTextContent("almoço de 1h");
+  });
+
+  it("closes the day with the balance and the complete CTA", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "18:31")!);
+    renderToday(fakePunches(["09:03", "13:00", "14:05", "18:30"].map((t) => punch(t))));
+
+    const card = await screen.findByRole("region", { name: "Dia fechado" });
+    expect(within(card).getByRole("heading")).toHaveTextContent("Saldo do dia +0h22");
+    expect(card).toHaveTextContent("Bom descanso. Amanhã tem mais galho.");
+    expect(screen.queryByRole("button", { name: /Bater ponto/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Dia completo · 4 de 4 batidas/ })).toBeEnabled();
+  });
+
+  it("lets a closed day take an extra punch, like a doctor's visit", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "18:31")!);
+    const user = renderToday(
+      fakePunches(["09:03", "13:00", "14:05", "18:30"].map((t) => punch(t))),
+    );
+
+    await user.click(await screen.findByRole("button", { name: /Dia completo · 4 de 4 batidas/ }));
+
+    const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
+    expect(sheet).toHaveTextContent("Vai entrar como saída extra");
+  });
+});
+
+describe("day tiles", () => {
+  it("shows the worked hours against the company's journey, with the balance still open", async () => {
+    renderToday(
+      fakePunches([punch("09:02"), punch("13:28")]),
+      fakeCompanies({ dailyMinutes: 528 }),
+    );
+
+    const worked = await screen.findByRole("group", { name: "Trabalhadas" });
+    expect(worked).toHaveTextContent("4h26");
+    expect(worked).toHaveTextContent("de 8h48");
+    const balance = screen.getByRole("group", { name: "Saldo do dia" });
+    expect(balance).toHaveTextContent("—");
+    expect(balance).toHaveTextContent("fecha na saída");
+  });
+
+  it("shows the balance with the tolerance once the day closes", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "18:20")!);
+    renderToday(fakePunches(["09:00", "12:00", "13:00", "18:10"].map((t) => punch(t))));
+
+    const balance = await screen.findByRole("group", { name: "Saldo do dia" });
+    expect(within(balance).getByLabelText("0 horas e 0 minutos")).toHaveTextContent("±0h00");
+    expect(balance).toHaveTextContent("jornada 8h00");
+  });
+
+  it("counts every minute on a day without a journey", async () => {
+    vi.setSystemTime(fromLocal(SATURDAY, "12:00")!);
+    renderToday(
+      fakePunches(["09:00", "10:00", "10:30", "10:35"].map((t) => punch(t, t, SATURDAY))),
+    );
+
+    expect(await screen.findByRole("group", { name: "Trabalhadas" })).toHaveTextContent(
+      "sem jornada",
+    );
+    expect(screen.getByRole("group", { name: "Saldo do dia" })).toHaveTextContent("+1h05");
+  });
+});
+
+describe("day alerts", () => {
+  it("warns about a short lunch", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "15:00")!);
+    renderToday(fakePunches([punch("09:02"), punch("13:28"), punch("14:21")]));
+
+    expect(await screen.findByText("Almoço de 53 min · o mínimo é 1h")).toBeVisible();
+  });
+
+  it("asks for the lunch on a day with only entry and exit", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "18:30")!);
+    renderToday(fakePunches([punch("09:00"), punch("18:00")]));
+
+    expect(await screen.findByText("Falta registrar o almoço")).toBeVisible();
+    expect(screen.getByRole("group", { name: "Saldo do dia" })).toHaveTextContent("dia incompleto");
   });
 });
 
@@ -270,6 +427,48 @@ describe("Bater ponto sheet", () => {
     const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
     expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
     expect(sheet).toHaveTextContent("Vai entrar como saída para o almoço");
+  });
+});
+
+describe("Bater ponto sheet live warnings", () => {
+  it("warns about a short lunch with the expected return", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "14:21")!);
+    const user = renderToday(fakePunches([punch("09:02"), punch("13:28")]));
+    await user.click(await screen.findByRole("button", { name: /Bater ponto/ }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "Almoço de 53 min. O mínimo é 1h; volta prevista às 14:28.",
+    );
+
+    await setTime(user, "14:28");
+    expect(screen.getByRole("dialog")).not.toHaveTextContent("Almoço de");
+  });
+
+  it.each([
+    ["18:30", "Com essa saída, o saldo do dia fica +0h22."],
+    ["17:30", "Com essa saída, o saldo do dia fica −0h38."],
+    ["18:08", "Com essa saída, o saldo do dia fica ±0h00."],
+  ])("gives the day's balance with an exit at %s", async (time, text) => {
+    const user = renderToday(fakePunches([punch("09:03"), punch("13:00"), punch("14:05")]));
+    await user.click(await screen.findByRole("button", { name: /Bater ponto/ }));
+
+    await setTime(user, time);
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(text);
+  });
+
+  it("calls it a punch, not an exit, when a doctor's return closes the day", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "18:40")!);
+    const user = renderToday(
+      fakePunches(["09:03", "13:00", "14:05", "15:00", "18:30"].map((t) => punch(t))),
+    );
+    await user.click(await screen.findByRole("button", { name: /Bater ponto/ }));
+
+    await setTime(user, "16:00");
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "Com essa batida, o saldo do dia fica −0h38.",
+    );
   });
 });
 

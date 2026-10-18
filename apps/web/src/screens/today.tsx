@@ -1,14 +1,17 @@
-import { daySlots, formatLongDate, toLocalDate } from "@chimponto/domain";
-import { Fingerprint } from "lucide-react";
+import { daySlots, formatLongDate, summarizeDay, toLocalDate } from "@chimponto/domain";
 import { useState } from "react";
 import { useSignedInUser } from "@/auth/auth";
+import { useCompanyRules } from "@/company/company";
 import { Avatar } from "@/components/avatar";
 import { ErrorState } from "@/components/error-state";
 import { ScreenHeader } from "@/components/screen-header";
-import { Button } from "@/components/ui/button";
 import { useProfile } from "@/data/profile";
-import { PUNCH_LABELS } from "@/punches/punch-labels";
+import { useNow } from "@/lib/use-now";
 import { type Punch, usePunchesOn } from "@/punches/punches";
+import { DayAlerts } from "./today/day-alerts";
+import { DayTiles } from "./today/day-tiles";
+import { NextCard } from "./today/next-card";
+import { PunchCta } from "./today/punch-cta";
 import { PunchesCard } from "./today/punches-card";
 import { PunchSheet } from "./today/punch-sheet";
 
@@ -18,8 +21,10 @@ type SheetTarget = { editing?: Punch };
 export function TodayScreen() {
   const user = useSignedInUser();
   const { data: profile } = useProfile(user.id);
-  const now = new Date();
-  const punches = usePunchesOn(toLocalDate(now));
+  const rules = useCompanyRules();
+  const now = useNow();
+  const today = toLocalDate(now);
+  const punches = usePunchesOn(today);
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
 
   if (punches.isError) {
@@ -33,8 +38,9 @@ export function TodayScreen() {
     );
   }
 
-  // Num dia par de 4+ o CTA oferece a batida extra; o estado "Dia completo" chega no #5.
-  const { slots, next } = daySlots(punches.data ?? [], now);
+  const { slots } = daySlots(punches.data ?? [], now);
+  const summary = punches.data && rules ? summarizeDay(punches.data, today, rules, now) : null;
+  const done = slots.filter((slot) => slot.kind === "done").length;
 
   return (
     <>
@@ -42,31 +48,21 @@ export function TodayScreen() {
         <Avatar displayName={profile?.display_name ?? null} email={user.email} />
       </ScreenHeader>
 
-      {punches.data && (
-        <PunchesCard
-          slots={slots}
-          onEdit={(punch) => setSheet({ editing: punch })}
-          onPunch={() => setSheet({})}
-        />
+      {summary && rules && (
+        <>
+          <NextCard summary={summary} expectedLunchMinutes={rules.expectedLunchMinutes} />
+          <DayAlerts alerts={summary.alerts} expectedLunchMinutes={rules.expectedLunchMinutes} />
+          <PunchesCard
+            slots={slots}
+            forecast={summary.forecast}
+            onEdit={(punch) => setSheet({ editing: punch })}
+            onPunch={() => setSheet({})}
+          />
+          <DayTiles summary={summary} />
+        </>
       )}
 
-      {/* CTA fixo na metade de baixo, sobre um degradê do fundo (handoff §1.8). */}
-      <div className="sticky bottom-0 -mx-4 mt-auto bg-linear-to-t from-background from-72% to-transparent px-4 pt-[18px] pb-3">
-        <Button
-          size="ponto"
-          disabled={!punches.data}
-          onClick={() => setSheet({})}
-          className="shadow-[inset_0_-3px_0_color-mix(in_oklab,var(--primary)_70%,var(--foreground)),0_8px_20px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)]"
-        >
-          <Fingerprint aria-hidden />
-          <span className="flex flex-col items-start gap-0.5">
-            <span className="leading-none">Bater ponto</span>
-            <span className="text-xs leading-none font-bold opacity-80">
-              {PUNCH_LABELS[next].phrase}
-            </span>
-          </span>
-        </Button>
-      </div>
+      <PunchCta summary={summary} done={done} total={slots.length} onPunch={() => setSheet({})} />
 
       {sheet && <PunchSheet editing={sheet.editing} onClose={() => setSheet(null)} />}
     </>

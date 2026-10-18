@@ -1,4 +1,7 @@
 import {
+  balanceTone,
+  formatBalance,
+  formatShortDuration,
   fromLocal,
   isDuplicateMinute,
   previewPunch,
@@ -6,14 +9,16 @@ import {
   toLocalTime,
   truncateToMinute,
 } from "@chimponto/domain";
-import { Trash2, TriangleAlert } from "lucide-react";
+import { CircleCheck, Clock, Trash2, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { v7 as uuidv7 } from "uuid";
+import { useCompanyRules } from "@/company/company";
 import { useToast } from "@/components/use-toast";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import { PUNCH_LABELS } from "@/punches/punch-labels";
 import { type Punch, type PunchWrite, usePunchesOn, useWritePunch } from "@/punches/punches";
 
@@ -35,6 +40,7 @@ export function PunchSheet({
   editing?: Punch | undefined;
   onClose: () => void;
 }) {
+  const rules = useCompanyRules();
   const writePunch = useWritePunch();
   const toast = useToast();
   const [initialInstant] = useState(() => truncateToMinute(editing?.punchedAt ?? new Date()));
@@ -50,7 +56,8 @@ export function PunchSheet({
   const at = fromLocal(date, time);
   const day = usePunchesOn(at ? date : toLocalDate(initialInstant));
   const candidate = at && { at, editingId: editing?.id };
-  const preview = candidate && day.data && previewPunch(day.data, candidate, new Date());
+  const preview =
+    candidate && day.data && rules && previewPunch(day.data, candidate, rules, new Date());
   const duplicate = !!candidate && !!day.data && isDuplicateMinute(day.data, candidate);
   const shownProblem = duplicate ? "duplicate" : problem;
 
@@ -137,10 +144,28 @@ export function PunchSheet({
           </p>
         ) : (
           preview && (
-            <p className="text-[12.5px] leading-[1.4] font-semibold text-muted-foreground">
-              {editing ? "Vai ficar como " : "Vai entrar como "}
-              <b className="text-foreground">{PUNCH_LABELS[preview.label].phrase}</b>.
-            </p>
+            <>
+              <p className="text-[12.5px] leading-[1.4] font-semibold text-muted-foreground">
+                {editing ? "Vai ficar como " : "Vai entrar como "}
+                <b className="text-foreground">{PUNCH_LABELS[preview.label].phrase}</b>.
+              </p>
+              {preview.shortLunch && rules && (
+                <LiveWarning tone="warning" icon={TriangleAlert}>
+                  Almoço de {formatShortDuration(preview.shortLunch.minutes)}. O mínimo é{" "}
+                  {formatShortDuration(rules.expectedLunchMinutes)}; volta prevista às{" "}
+                  {toLocalTime(preview.shortLunch.returnAt)}.
+                </LiveWarning>
+              )}
+              {preview.dayBalance !== null && (
+                <LiveWarning
+                  tone={balanceTone(preview.dayBalance)}
+                  icon={balanceTone(preview.dayBalance) === "negative" ? Clock : CircleCheck}
+                >
+                  Com essa {preview.label === "exit" ? "saída" : "batida"}, o saldo do dia fica{" "}
+                  {formatBalance(preview.dayBalance)}.
+                </LiveWarning>
+              )}
+            </>
           )
         )}
 
@@ -187,5 +212,35 @@ export function PunchSheet({
         />
       )}
     </Sheet>
+  );
+}
+
+const TONE_CLASS = {
+  warning: "bg-warning/12 text-warning",
+  positive: "bg-positive/12 text-positive",
+  negative: "bg-negative/12 text-negative",
+  neutral: "bg-muted text-muted-foreground",
+};
+
+/** Aviso ao vivo do sheet (handoff §2): fundo tingido, 13/700, ícone 18. */
+function LiveWarning({
+  tone,
+  icon: Icon,
+  children,
+}: {
+  tone: keyof typeof TONE_CLASS;
+  icon: typeof CircleCheck;
+  children: React.ReactNode;
+}) {
+  return (
+    <p
+      className={cn(
+        "flex items-center gap-2.5 rounded-[14px] px-3.5 py-3 text-[13px] leading-[1.4] font-bold",
+        TONE_CLASS[tone],
+      )}
+    >
+      <Icon className="size-[18px] shrink-0" aria-hidden />
+      <span>{children}</span>
+    </p>
   );
 }

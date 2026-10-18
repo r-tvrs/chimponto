@@ -1,3 +1,4 @@
+import { companyRulesSchema } from "@chimponto/domain";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -29,7 +30,8 @@ function fakeCompanies(membership: Membership | null, ...createResults: CreateCo
     membershipOf: vi.fn<Companies["membershipOf"]>(async () => current),
     create: vi.fn<Companies["create"]>(async () => {
       const result = createResults.shift() ?? "created";
-      if (result !== "failed") current = { companyId: "company-1", role: "admin" };
+      if (result !== "failed")
+        current = { companyId: "company-1", role: "admin", rules: companyRulesSchema.parse({}) };
       return result;
     }),
   } satisfies Companies;
@@ -87,7 +89,11 @@ describe("company guard", () => {
   it("never shows the Empresa screen to who already has a company", async () => {
     renderApp({
       at: "/empresa",
-      companies: fakeCompanies({ companyId: "company-1", role: "admin" }),
+      companies: fakeCompanies({
+        companyId: "company-1",
+        role: "admin",
+        rules: companyRulesSchema.parse({}),
+      }),
     });
 
     expect(await screen.findByRole("heading", { name: "Hoje" })).toBeVisible();
@@ -95,7 +101,11 @@ describe("company guard", () => {
   });
 
   it("shows the generic error when the company can't be loaded, and retries on demand", async () => {
-    const companies = fakeCompanies({ companyId: "company-1", role: "admin" });
+    const companies = fakeCompanies({
+      companyId: "company-1",
+      role: "admin",
+      rules: companyRulesSchema.parse({}),
+    });
     companies.membershipOf.mockRejectedValueOnce(new Error("offline"));
     const user = renderApp({ at: "/", companies });
 

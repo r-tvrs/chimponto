@@ -8,6 +8,13 @@ export function formatDuration(minutes: number): string {
   return `${Math.floor(abs / 60)}h${String(abs % 60).padStart(2, "0")}`;
 }
 
+/** Para frases: 53 -> "53 min", 60 -> "1h", 65 -> "1h05". Ignora o sinal. */
+export function formatShortDuration(minutes: number): string {
+  const abs = Math.abs(minutes);
+  if (abs < 60) return `${abs} min`;
+  return abs % 60 === 0 ? `${abs / 60}h` : formatDuration(abs);
+}
+
 const DURATION_PATTERN = /^(\d{1,2})(?:[h:](\d{2})?)?$/i;
 
 /** Inverso de `formatDuration`: "8h48" -> 528. Aceita também "8:48", "8h" e "8". Inválido -> null. */
