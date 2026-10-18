@@ -10,7 +10,7 @@ Todas as tabelas em `public` com **RLS habilitado**. `auth.uid()` identifica o u
 | id | uuid pk | |
 | name | text | |
 | timezone | text | `America/Sao_Paulo` |
-| rules | jsonb | Configuração de jornada (`02-regras-de-negocio.md` §1), validada por schema Zod |
+| rules | jsonb | Configuração de jornada (`02-regras-de-negocio.md` §1), validada por schema Zod. O banco só exige um objeto; todo leitor passa `rules` por `companyRulesSchema.parse` |
 | created_at | timestamptz | |
 
 ### `company_members`

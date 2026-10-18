@@ -4,6 +4,7 @@ import {
   formatBalance,
   formatDuration,
   formatLongDate,
+  parseDuration,
   spokenBalance,
 } from "./format";
 
@@ -16,6 +17,29 @@ describe("formatDuration", () => {
   ])("%i min -> %s", (min, expected) => {
     expect(formatDuration(min)).toBe(expected);
   });
+});
+
+describe("parseDuration", () => {
+  it.each([
+    ["8h00", 480],
+    ["8h48", 528],
+    ["10h30", 630],
+    ["08h00", 480],
+    ["8H00", 480],
+    ["8:30", 510],
+    ["8h", 480],
+    ["8", 480],
+    [" 8h00 ", 480],
+  ])("%s -> %i min", (text, expected) => {
+    expect(parseDuration(text)).toBe(expected);
+  });
+
+  it.each(["", "h00", "8h5", "8h60", "8h000", "-8h00", "8,5", "oito horas"])(
+    "rejects %j",
+    (text) => {
+      expect(parseDuration(text)).toBeNull();
+    },
+  );
 });
 
 describe("formatBalance", () => {

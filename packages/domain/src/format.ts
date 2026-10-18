@@ -8,6 +8,17 @@ export function formatDuration(minutes: number): string {
   return `${Math.floor(abs / 60)}h${String(abs % 60).padStart(2, "0")}`;
 }
 
+const DURATION_PATTERN = /^(\d{1,2})(?:[h:](\d{2})?)?$/i;
+
+/** Inverso de `formatDuration`: "8h48" -> 528. Aceita também "8:48", "8h" e "8". Inválido -> null. */
+export function parseDuration(text: string): number | null {
+  const match = DURATION_PATTERN.exec(text.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] ?? 0);
+  return minutes < 60 ? hours * 60 + minutes : null;
+}
+
 /** Sempre com sinal; o menos é U+2212. 80 -> "+1h20", -35 -> "−0h35", 0 -> "±0h00". */
 export function formatBalance(minutes: number): string {
   const sign = minutes > 0 ? "+" : minutes < 0 ? "−" : "±";

@@ -23,6 +23,61 @@ export type Database = {
   };
   public: {
     Tables: {
+      companies: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          rules: NonNullable<Json>;
+          timezone: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          rules: NonNullable<Json>;
+          timezone?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          rules?: NonNullable<Json>;
+          timezone?: string;
+        };
+        Relationships: [];
+      };
+      company_members: {
+        Row: {
+          company_id: string;
+          created_at: string;
+          role: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          company_id: string;
+          created_at?: string;
+          role: string;
+          user_id: string;
+        };
+        Update: {
+          company_id?: string;
+          created_at?: string;
+          role?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           display_name: string | null;
@@ -50,7 +105,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_company: { Args: { name: string; rules: Json }; Returns: string };
     };
     Enums: {
       [_ in never]: never;

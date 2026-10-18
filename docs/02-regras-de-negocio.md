@@ -25,6 +25,8 @@ Unidades: durações em **minutos inteiros**, dinheiro em **centavos inteiros**,
 | `dsrOnOvertime` | `true` 🔶 | Ver §8.3 |
 | `absenceDeductsDsr` | `true` 🔶 | Ver §8.4 |
 
+Campos e padrões definidos só em `companyRulesSchema` (`packages/domain`), que preenche os ausentes e rejeita os inválidos. `closingDay` e `payday` vão de 1 a 28, para que todo mês tenha o dia.
+
 ## 2. Batidas
 
 - Uma batida = um instante (`punched_at`, precisão de minuto) + origem (`manual` | `ocr`) + observação opcional.

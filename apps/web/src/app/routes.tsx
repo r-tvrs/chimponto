@@ -1,11 +1,12 @@
 import { Navigate, type RouteObject } from "react-router";
 import { AppShell } from "@/components/app-shell";
+import { CompanyScreen } from "@/screens/company";
 import { LoginScreen } from "@/screens/login";
 import { PeriodScreen } from "@/screens/period";
 import { SalaryScreen } from "@/screens/salary";
 import { SettingsScreen } from "@/screens/settings";
 import { TodayScreen } from "@/screens/today";
-import { RequireNoSession, RequireSession } from "./guards";
+import { RequireCompany, RequireNoCompany, RequireNoSession, RequireSession } from "./guards";
 import { RouteError } from "./route-error";
 
 export const routes: RouteObject[] = [
@@ -21,9 +22,21 @@ export const routes: RouteObject[] = [
         ),
       },
       {
+        path: "empresa",
         element: (
           <RequireSession>
-            <AppShell />
+            <RequireNoCompany>
+              <CompanyScreen />
+            </RequireNoCompany>
+          </RequireSession>
+        ),
+      },
+      {
+        element: (
+          <RequireSession>
+            <RequireCompany>
+              <AppShell />
+            </RequireCompany>
           </RequireSession>
         ),
         children: [

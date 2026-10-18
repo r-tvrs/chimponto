@@ -6,6 +6,8 @@ import { RouterProvider } from "react-router/dom";
 import "./globals.css";
 import { routes } from "./app/routes";
 import { SupabaseAuthProvider } from "./auth/supabase-auth-provider";
+import { CompaniesContext } from "./company/company";
+import { supabaseCompanies } from "./company/supabase-companies";
 
 const queryClient = new QueryClient();
 const router = createBrowserRouter(routes);
@@ -14,7 +16,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <SupabaseAuthProvider>
-        <RouterProvider router={router} />
+        <CompaniesContext.Provider value={supabaseCompanies}>
+          <RouterProvider router={router} />
+        </CompaniesContext.Provider>
       </SupabaseAuthProvider>
     </QueryClientProvider>
   </StrictMode>,
