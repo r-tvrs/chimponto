@@ -1,3 +1,5 @@
+import { WEEKDAYS, type Weekday } from "./company-rules";
+
 // Tempo local de São Paulo (docs/02 §2). Única forma de obter o "dia" de uma batida no cliente;
 // equivale à coluna `local_date` de `punches` ((punched_at at time zone 'America/Sao_Paulo')::date).
 
@@ -65,4 +67,16 @@ function offsetMs(instant: Date): number {
   const [y, m, d] = date.split("-").map(Number);
   const [h, min] = time.split(":").map(Number);
   return Date.UTC(y!, m! - 1, d!, h!, min!) - truncateToMinute(instant).getTime();
+}
+
+/** A data `days` dias depois (antes, se negativo) de `date`. */
+export function addDays(date: LocalDate, days: number): LocalDate {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d! + days)).toISOString().slice(0, 10);
+}
+
+export function weekdayOf(date: LocalDate): Weekday {
+  // Meio-dia UTC cai no mesmo dia do calendário em qualquer fuso do Brasil.
+  const sundayFirst = new Date(`${date}T12:00:00Z`).getUTCDay();
+  return WEEKDAYS[(sundayFirst + 6) % 7]!;
 }

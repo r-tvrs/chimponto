@@ -110,6 +110,12 @@ Modelo adotado: **horas extras pagas e atrasos descontados todo mês** (sem banc
 
 A tela de período mostra: saldo líquido em horas, horas extras por tipo, débito, dias pendentes/incompletos.
 
+- Entram nos totais só os dias `complete` até hoje. Hoje entra quando fecha; dias futuros nunca, mesmo com batidas.
+- Pendências: dias passados `pending` ou `incomplete`. Hoje e futuros não contam.
+- O tipo de adicional sai do dia da semana do calendário (sábado, domingo); feriados entram em domingo/feriado com o #11.
+- Saldo líquido = soma dos `balance` dos dias que entram; é o mesmo nos dois modos.
+- Com `compensateWithinPeriod = true`, o sábado se compensa com os outros dias e o saldo positivo vira hora extra de dia útil.
+
 ## 7. Lembretes
 
 Antecedência padrão: `leadMinutes = 10` (configurável por usuário). Sem lembrete para ir almoçar.

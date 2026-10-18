@@ -1,23 +1,43 @@
 import { supabase } from "@/lib/supabase";
 import type { Punch, Punches } from "./punches";
 
+// A RLS já limita às batidas do usuário da sessão.
+const livePunches = () =>
+  supabase
+    .from("punches")
+    .select("id, punched_at, source, note, updated_at")
+    .is("deleted_at", null);
+
+type PunchRow = {
+  id: string;
+  punched_at: string;
+  source: string;
+  note: string | null;
+  updated_at: string;
+};
+
+function punchOfRow(row: PunchRow): Punch {
+  return {
+    id: row.id,
+    punchedAt: new Date(row.punched_at),
+    // O check da tabela garante 'manual' | 'ocr'.
+    source: row.source as Punch["source"],
+    note: row.note,
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
 export const supabasePunches: Punches = {
   async onDate(date) {
-    // A RLS já limita às batidas do usuário da sessão.
-    const { data, error } = await supabase
-      .from("punches")
-      .select("id, punched_at, source, note, updated_at")
-      .eq("local_date", date)
-      .is("deleted_at", null);
+    const { data, error } = await livePunches().eq("local_date", date);
     if (error) throw error;
-    return data.map((row) => ({
-      id: row.id,
-      punchedAt: new Date(row.punched_at),
-      // O check da tabela garante 'manual' | 'ocr'.
-      source: row.source as Punch["source"],
-      note: row.note,
-      updatedAt: new Date(row.updated_at),
-    }));
+    return data.map(punchOfRow);
+  },
+
+  async between(start, end) {
+    const { data, error } = await livePunches().gte("local_date", start).lte("local_date", end);
+    if (error) throw error;
+    return data.map(punchOfRow);
   },
 
   async upsert(write) {

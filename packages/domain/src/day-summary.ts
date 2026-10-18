@@ -1,5 +1,5 @@
-import { type CompanyRules, WEEKDAYS, type Weekday } from "./company-rules";
-import { type LocalDate, MINUTE_MS, toLocalDate, truncateToMinute } from "./local-time";
+import type { CompanyRules } from "./company-rules";
+import { type LocalDate, MINUTE_MS, toLocalDate, truncateToMinute, weekdayOf } from "./local-time";
 import {
   type DayPunch,
   labelCandidate,
@@ -45,12 +45,6 @@ export type DaySummary = {
 export type NextPunch =
   | { label: PunchLabel; at: Date; minutesUntil: number }
   | { label: PunchLabel; at: null; minutesUntil: null };
-
-function weekdayOf(date: LocalDate): Weekday {
-  // Meio-dia UTC cai no mesmo dia do calendário em qualquer fuso do Brasil.
-  const sundayFirst = new Date(`${date}T12:00:00Z`).getUTCDay();
-  return WEEKDAYS[(sundayFirst + 6) % 7]!;
-}
 
 const minutesBetween = (from: Date, to: Date) => (to.getTime() - from.getTime()) / MINUTE_MS;
 

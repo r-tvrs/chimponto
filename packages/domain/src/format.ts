@@ -1,3 +1,6 @@
+import { WEEKDAYS } from "./company-rules";
+import { type LocalDate, weekdayOf } from "./local-time";
+
 // Formatação de durações, saldos e datas (docs/07: saldo sempre com sinal + cor).
 
 export type BalanceTone = "positive" | "negative" | "neutral";
@@ -58,4 +61,38 @@ export function formatLongDate(instant: Date): string {
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((p) => p.type === type)?.value ?? "";
   return `${part("weekday").replace(".", "")}, ${part("day")} de ${part("month")}`;
+}
+
+const MONTHS = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+const WEEKDAYS_SHORT = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+
+const monthOf = (date: LocalDate) => Number(date.slice(5, 7)) - 1;
+
+/** Data de calendário curta: "20 set"; o dia 1º leva o ordinal ("1º nov"). */
+export function formatDayMonth(date: LocalDate): string {
+  const day = Number(date.slice(8, 10));
+  return `${day === 1 ? "1º" : day} ${MONTHS[monthOf(date)]!.slice(0, 3)}`;
+}
+
+/** "outubro". */
+export function formatMonth(date: LocalDate): string {
+  return MONTHS[monthOf(date)]!;
+}
+
+/** "sex". */
+export function formatWeekday(date: LocalDate): string {
+  return WEEKDAYS_SHORT[WEEKDAYS.indexOf(weekdayOf(date))]!;
 }

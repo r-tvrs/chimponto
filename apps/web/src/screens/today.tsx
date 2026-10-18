@@ -14,6 +14,7 @@ import { ConflictAlerts } from "./today/conflict-alerts";
 import { DayAlerts } from "./today/day-alerts";
 import { DayTiles } from "./today/day-tiles";
 import { NextCard } from "./today/next-card";
+import { PeriodTile } from "./today/period-tile";
 import { PunchCta } from "./today/punch-cta";
 import { PunchesCard } from "./today/punches-card";
 import { PunchSheet } from "./today/punch-sheet";
@@ -82,6 +83,7 @@ export function TodayScreen() {
             onPunch={() => setSheet({})}
           />
           <DayTiles summary={summary} />
+          <PeriodTile rules={rules} now={now} />
         </>
       )}
 

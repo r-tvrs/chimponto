@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   balanceTone,
   formatBalance,
+  formatDayMonth,
   formatDuration,
   formatLongDate,
+  formatMonth,
   formatShortDuration,
   parseDuration,
   spokenBalance,
+  formatWeekday,
 } from "./format";
 
 describe("formatDuration", () => {
@@ -99,5 +102,23 @@ describe("formatLongDate", () => {
     ["2026-10-17T02:30:00Z", "sex, 16 de outubro"],
   ])("%s -> %s", (iso, expected) => {
     expect(formatLongDate(new Date(iso))).toBe(expected);
+  });
+});
+
+describe("calendar dates", () => {
+  it.each([
+    ["2026-09-20", "20 set"],
+    ["2026-10-19", "19 out"],
+    ["2026-11-01", "1º nov"],
+    ["2027-02-05", "5 fev"],
+  ])("formatDayMonth(%s) = %s", (date, text) => {
+    expect(formatDayMonth(date)).toBe(text);
+  });
+
+  it("names the month and the weekday of a date", () => {
+    expect(formatMonth("2026-10-16")).toBe("outubro");
+    expect(formatMonth("2026-03-01")).toBe("março");
+    expect(formatWeekday("2026-10-16")).toBe("sex");
+    expect(formatWeekday("2026-10-18")).toBe("dom");
   });
 });

@@ -31,6 +31,8 @@ export type UpsertPunchResult = "applied" | "stale" | "duplicate_minute" | "fail
 export type Punches = {
   /** Batidas não excluídas do dia local, em qualquer ordem. */
   onDate: (date: LocalDate) => Promise<Punch[]>;
+  /** Batidas não excluídas dos dias locais de `start` a `end`, inclusive. */
+  between: (start: LocalDate, end: LocalDate) => Promise<Punch[]>;
   upsert: (write: PunchWrite) => Promise<UpsertPunchResult>;
 };
 
@@ -51,13 +53,22 @@ export function useQueuedPunches(): OutboxItem[] | undefined {
   return useLiveQuery(() => outbox.items(user.id), [outbox, user.id]);
 }
 
-/** As batidas do servidor com as escritas da fila por cima, na ordem da fila; conflitos ficam de fora. */
-function withQueue(server: Punch[], queue: OutboxItem[], date: LocalDate): Punch[] {
+/**
+ * As batidas do servidor com as escritas da fila por cima, na ordem da fila; conflitos ficam de fora.
+ * Da fila entram só as dos dias locais de `start` a `end`.
+ */
+function withQueue(
+  server: Punch[],
+  queue: OutboxItem[],
+  start: LocalDate,
+  end: LocalDate,
+): Punch[] {
   const byId = new Map(server.map((punch) => [punch.id, punch]));
   for (const { write, conflict } of queue) {
     if (conflict) continue;
     byId.delete(write.id);
-    if (!write.deletedAt && toLocalDate(write.punchedAt) === date) {
+    const date = toLocalDate(write.punchedAt);
+    if (!write.deletedAt && date >= start && date <= end) {
       byId.set(write.id, punchOf(write));
     }
   }
@@ -76,7 +87,24 @@ export function usePunchesOn(date: LocalDate) {
   // Sem conexão e sem o dia no cache, a consulta fica pausada: vale só o que está na fila.
   const serverPunches = server.data ?? (server.fetchStatus === "paused" ? [] : undefined);
   return {
-    data: serverPunches && queue && withQueue(serverPunches, queue, date),
+    data: serverPunches && queue && withQueue(serverPunches, queue, date, date),
+    isError: server.isError,
+    refetch: server.refetch,
+  };
+}
+
+/** Batidas do usuário da sessão dos dias `start` a `end`, já com o que está na fila do aparelho. */
+export function usePunchesBetween(start: LocalDate, end: LocalDate) {
+  const punches = usePunches();
+  const user = useSignedInUser();
+  const queue = useQueuedPunches();
+  const server = useQuery({
+    queryKey: [...punchesKey(user.id), start, end],
+    queryFn: () => punches.between(start, end),
+  });
+  const serverPunches = server.data ?? (server.fetchStatus === "paused" ? [] : undefined);
+  return {
+    data: serverPunches && queue && withQueue(serverPunches, queue, start, end),
     isError: server.isError,
     refetch: server.refetch,
   };

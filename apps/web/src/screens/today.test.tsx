@@ -2,7 +2,7 @@ import { type CompanyRules, companyRulesSchema, fromLocal, toLocalDate } from "@
 import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, AuthContext } from "@/auth/auth";
 import { type Companies, CompaniesContext } from "@/company/company";
@@ -57,6 +57,12 @@ function fakePunches(initial: Punch[]) {
     onDate: vi.fn<Punches["onDate"]>(async (date) =>
       live().filter((p) => toLocalDate(p.punchedAt) === date),
     ),
+    between: vi.fn<Punches["between"]>(async (start, end) =>
+      live().filter((p) => {
+        const date = toLocalDate(p.punchedAt);
+        return date >= start && date <= end;
+      }),
+    ),
     upsert: vi.fn<Punches["upsert"]>(async (write) => {
       const result = forced;
       forced = null;
@@ -107,7 +113,10 @@ function renderToday(punches: Punches, companies = fakeCompanies(), outbox = fre
               <PunchSync />
               <ToastProvider>
                 <MemoryRouter>
-                  <TodayScreen />
+                  <Routes>
+                    <Route index element={<TodayScreen />} />
+                    <Route path="/periodo" element={<p>Tela Período</p>} />
+                  </Routes>
                 </MemoryRouter>
               </ToastProvider>
             </OutboxContext.Provider>
@@ -320,6 +329,28 @@ describe("day tiles", () => {
       "sem jornada",
     );
     expect(screen.getByRole("group", { name: "Saldo do dia" })).toHaveTextContent("+1h05");
+  });
+});
+
+describe("period tile", () => {
+  it("shows the current period's balance and leads to Período", async () => {
+    vi.setSystemTime(fromLocal(TODAY, "10:00")!);
+    const user = renderToday(
+      fakePunches([
+        ...["09:00", "12:00", "13:00", "18:40"].map((t) => punch(t, `a-${t}`, "2026-10-13")),
+        ...["09:00", "12:00", "13:00", "17:50"].map((t) => punch(t, `b-${t}`, "2026-10-14")),
+        punch("09:02"),
+      ]),
+    );
+
+    const tile = await screen.findByRole("link", { name: /Saldo do período · 20 set – 19 out/ });
+    expect(await within(tile).findByLabelText("mais 0 horas e 40 minutos")).toHaveTextContent(
+      "+0h40",
+    );
+
+    await user.click(tile);
+
+    expect(screen.getByText("Tela Período")).toBeVisible();
   });
 });
 

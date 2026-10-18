@@ -56,6 +56,13 @@ A spec completa está em [`design/design_handoff_chimponto/README.md`](../design
 | Alertas só do almoço curto | Também "Falta registrar o almoço" (só entrada e saída, > 6h) e "Falta uma batida neste dia" (ímpar em dia passado), no mesmo bloco `warning` |
 | Aviso ao vivo do saldo só em `positive`/`negative` | Saldo zerado (dentro da tolerância) usa o fundo `muted` com `CircleCheck`. Os avisos ficam abaixo de "Vai entrar como …" |
 | Aviso do saldo só na saída ("Com essa saída, …") | Aparece em toda batida nova que fecha o dia e na edição da última batida. Fora da saída o texto é "Com essa batida, o saldo do dia fica …" (ex.: a volta do médico que fecha o dia antes da saída) |
+| Período: seletor com "período atual · fecha em N dias" | "fecha hoje" e "fecha amanhã" nos dois últimos dias. Período passado: "período fechado · pagamento em 1º out" (data de `payday`). Sem período futuro: o próximo fica desabilitado no atual |
+| Resumo com "Horas extras" numa soma só | Mini-tile com a soma; abaixo, uma linha com as extras por tipo que não são zero: "Dia útil +0h40 · Sábado +2h00 · Domingo/feriado +1h30" (`docs/02` §6). "Pendências" conta dias `pending` e `incomplete` passados (não conta almoço curto) |
+| Lista só com dias úteis | Todos os dias do período, do mais recente. Fim de semana sem batidas: "sem jornada", sem badge |
+| Badge "3 de 4 batidas" | "N batidas" para número ímpar; "Sem almoço" para só entrada e saída com mais de 6h (`docs/02` §3). Um badge por dia, nesta ordem: Hoje · Sem registro · N batidas · Sem almoço · Almoço curto |
+| Linha "Hoje" com "em andamento" | Mantido enquanto aberto; fechado, mostra as horas trabalhadas e o saldo |
+| Tocar numa linha abre Dia | Só a linha de hoje é tocável (vai para a Hoje) e só ela tem `ChevronRight`, até a tela Dia (#8) |
+| Filtro "Pendências (N)" | Mostra só os dias que faltam resolver (`pending` e `incomplete` passados); hoje e os futuros nunca entram |
 | Hoje parada no instante em que abriu | Relógio renovado a cada 30 s: "em N min", previsões, rótulo da próxima batida e virada do dia acompanham a hora |
 
 ## Regras globais de UI (resumo do handoff)
