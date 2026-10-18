@@ -22,7 +22,7 @@ export function BottomNav() {
           end
           className="group flex min-h-[54px] flex-col items-center justify-center gap-1 outline-none"
         >
-          <span className="flex h-[30px] w-14 items-center justify-center rounded-full text-muted-foreground transition-colors group-focus-visible:ring-[3px] group-focus-visible:ring-ring/30 group-aria-[current=page]:bg-primary group-aria-[current=page]:text-primary-foreground">
+          <span className="flex h-[30px] w-14 items-center justify-center rounded-full text-muted-foreground transition-colors group-focus-visible:ring-[3px] group-focus-visible:ring-ring/30 group-focus-visible:inset-ring group-focus-visible:inset-ring-ring group-aria-[current=page]:bg-primary group-aria-[current=page]:text-primary-foreground">
             <Icon className="size-5" aria-hidden />
           </span>
           <span className="text-[11.5px] leading-none font-semibold text-muted-foreground group-aria-[current=page]:font-extrabold group-aria-[current=page]:text-foreground">

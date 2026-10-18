@@ -53,8 +53,11 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       state,
       requestMagicLink,
       signOut: async () => {
-        // "local": sai só deste aparelho e funciona sem conexão.
-        await supabase.auth.signOut({ scope: "local" });
+        // "local": sai só deste aparelho. Sem conexão, o SDK devolve erro nos dois casos:
+        // - token de acesso válido: apaga a sessão mesmo assim;
+        // - token vencido: não consegue renová-lo, mantém a sessão e só tenta de novo após 60 s.
+        const { error } = await supabase.auth.signOut({ scope: "local" });
+        return error ? "failed" : "signed_out";
       },
     }),
     [state],

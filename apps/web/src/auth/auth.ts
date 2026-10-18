@@ -10,10 +10,13 @@ export type AuthState =
 
 export type MagicLinkResult = "sent" | "rate_limited" | "failed";
 
+/** `failed`: o SDK acusou erro. A sessão pode ter saído mesmo assim; se saiu, a guarda leva ao Login. */
+export type SignOutResult = "signed_out" | "failed";
+
 export type Auth = {
   state: AuthState;
   requestMagicLink: (email: string) => Promise<MagicLinkResult>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<SignOutResult>;
 };
 
 export const AuthContext = createContext<Auth | null>(null);

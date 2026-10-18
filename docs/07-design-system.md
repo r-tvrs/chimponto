@@ -37,6 +37,7 @@ A spec completa está em [`design/design_handoff_chimponto/README.md`](../design
 | Holerite com "Salário base · 220h" | Referência vem de `rules.hourDivisor` |
 | "Exportar meus dados · CSV" | Exportar JSON completo + CSV de batidas e saldos |
 | Convite por código (`LUMEN-7K2Q`) | Aceitar link **e** código; ambos validados por `accept_invite` |
+| Ajustes sem saída da sessão | Linha "Sair" · "Encerra a sessão neste aparelho" (`LogOut`), sessão local. Se falhar (sem conexão e com o token vencido), estado de erro "Não deu para sair" com "Tentar de novo". Fica no grupo "Privacidade e conta"; até o grupo existir, num grupo "Conta" |
 | Cofre "tranca sozinho após 5 min" | Abre uma vez por aparelho e fica lembrado (`docs/05`). Ajustes: "Trancar cofre agora" com apoio "Fica aberto neste aparelho até você trancar" |
 | Push com ações "Bater agora" e "Lembrar em 5 min" | Só "Bater agora" |
 | Sheet "Bater ponto" com grade 2×2 para escolher o tipo | Sem escolha de tipo. No lugar da grade, texto derivado da hora escolhida: "Vai entrar como **volta do almoço**" (`docs/02` §2.1), recalculado ao vivo |

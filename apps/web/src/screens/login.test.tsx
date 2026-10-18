@@ -8,7 +8,7 @@ function renderLogin(overrides: Partial<Auth> = {}) {
   const auth: Auth = {
     state: { status: "signed_out", linkError: false },
     requestMagicLink: vi.fn(async () => "sent" as const),
-    signOut: vi.fn(async () => {}),
+    signOut: vi.fn(async () => "signed_out" as const),
     ...overrides,
   };
   render(

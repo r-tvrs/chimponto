@@ -1,9 +1,29 @@
 import { ChevronRight, LogOut } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "@/auth/auth";
+import { ErrorState } from "@/components/error-state";
 import { ScreenHeader } from "@/components/screen-header";
 
 export function SettingsScreen() {
   const { signOut } = useAuth();
+  const [signOutFailed, setSignOutFailed] = useState(false);
+
+  // Se der certo, a guarda de rotas leva ao Login.
+  async function leave() {
+    setSignOutFailed(false);
+    if ((await signOut()) === "failed") setSignOutFailed(true);
+  }
+
+  if (signOutFailed) {
+    return (
+      <ErrorState
+        inShell
+        title="Não deu para sair"
+        message="Confira a conexão e tente de novo em um minuto."
+        onRetry={() => void leave()}
+      />
+    );
+  }
 
   return (
     <>
@@ -15,8 +35,8 @@ export function SettingsScreen() {
       <div className="overflow-hidden rounded-[20px] border bg-card">
         <button
           type="button"
-          onClick={() => void signOut()}
-          className="flex min-h-[58px] w-full items-center gap-3 px-3.5 py-2.5 text-left outline-none focus-visible:bg-muted active:bg-muted"
+          onClick={() => void leave()}
+          className="flex min-h-[58px] w-full items-center gap-3 px-3.5 py-2.5 text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:ring-inset focus-visible:inset-ring focus-visible:inset-ring-ring active:bg-muted"
         >
           <LogOut className="size-5 text-muted-foreground" aria-hidden />
           <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
