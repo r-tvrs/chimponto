@@ -1,4 +1,4 @@
-// Formatação de durações e saldos (docs/07: saldo sempre com sinal + cor).
+// Formatação de durações, saldos e datas (docs/07: saldo sempre com sinal + cor).
 
 export type BalanceTone = "positive" | "negative" | "neutral";
 
@@ -25,4 +25,19 @@ export function spokenBalance(minutes: number): string {
   const mins = abs % 60;
   const prefix = minutes > 0 ? "mais " : minutes < 0 ? "menos " : "";
   return `${prefix}${hours} hora${hours === 1 ? "" : "s"} e ${mins} minuto${mins === 1 ? "" : "s"}`;
+}
+
+const longDateFormat = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  weekday: "short",
+  day: "numeric",
+  month: "long",
+});
+
+/** Data local de São Paulo para cabeçalhos: "sex, 16 de outubro" (sem o ponto de "sex."). */
+export function formatLongDate(instant: Date): string {
+  const parts = longDateFormat.formatToParts(instant);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("weekday").replace(".", "")}, ${part("day")} de ${part("month")}`;
 }

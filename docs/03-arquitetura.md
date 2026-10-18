@@ -6,6 +6,7 @@
 |---|---|
 | Repositório | Monorepo pnpm: `apps/web`, `packages/domain`, `supabase/` |
 | Frontend | React + Vite + TypeScript, PWA (`vite-plugin-pwa`) |
+| Roteamento | React Router (modo data) |
 | Estado do servidor | TanStack Query |
 | Estado do cliente | Zustand — apenas estado do cofre (chave em memória, bloqueado/desbloqueado) |
 | Offline | IndexedDB via Dexie (outbox + cache) |
@@ -74,6 +75,7 @@ Salário é cifrado ponta a ponta; o servidor não pode calcular. Saldo também 
 - Supabase Auth: link mágico por e-mail e Google OAuth. Sem senha de login.
 - Senha do cofre é separada e nunca sai do navegador (ver `05-seguranca.md`).
 - Sessão gerenciada pelo SDK do Supabase.
+- Fluxo implícito (tokens no fragmento da URL), não PKCE: o link mágico entra mesmo aberto num navegador diferente do que o pediu.
 
 ### D6 — Multiusuário
 - Todo usuário pertence a uma empresa (`company_members`, um por usuário na v1).

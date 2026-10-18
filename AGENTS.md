@@ -54,15 +54,16 @@ Leia antes de implementar qualquer coisa:
 
 ## Comandos
 
-| Comando                                        | O que faz                                         |
-| ---------------------------------------------- | ------------------------------------------------- |
-| `pnpm install`                                 | Instala dependências e ativa o hook de gitleaks   |
-| `pnpm dev`                                     | Sobe o PWA em modo dev                            |
-| `pnpm test`                                    | Vitest em todos os pacotes (domain com cobertura) |
-| `pnpm --filter @chimponto/domain test:watch`   | TDD no domínio                                    |
-| `pnpm test:e2e`                                | Playwright (Chromium + WebKit, 360 px)            |
-| `pnpm lint` · `pnpm typecheck` · `pnpm format` | Qualidade                                         |
-| `pnpm dlx supabase start` · `supabase test db` | Banco local (Docker) e testes pgTAP               |
+| Comando                                        | O que faz                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| `pnpm install`                                 | Instala dependências e ativa o hook de gitleaks                    |
+| `pnpm dev`                                     | Sobe o PWA em modo dev (`apps/web/.env.local`, ver `.env.example`) |
+| `pnpm test`                                    | Vitest em todos os pacotes (domain com cobertura)                  |
+| `pnpm --filter @chimponto/domain test:watch`   | TDD no domínio                                                     |
+| `pnpm test:e2e`                                | Playwright (Chromium + WebKit, 360 px) contra o Supabase local     |
+| `pnpm lint` · `pnpm typecheck` · `pnpm format` | Qualidade                                                          |
+| `pnpm dlx supabase start` · `supabase test db` | Banco local (Docker) e testes pgTAP                                |
+| `pnpm db:types`                                | Regenera os tipos do banco (`database.types.ts`)                   |
 
 ## Agent skills
 

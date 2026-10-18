@@ -1,0 +1,73 @@
+import { expect, type Page, test } from "@playwright/test";
+import { magicLinkFor } from "./mailpit";
+
+/** Pede o link mágico pela tela de Login e devolve a URL que chegou no e-mail. */
+async function requestMagicLink(page: Page, email: string): Promise<string> {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByRole("button", { name: "Receber link mágico" }).click();
+  await expect(page.getByRole("status")).toContainText(`Link mágico enviado para ${email}`);
+  return magicLinkFor(email);
+}
+
+test("entra por link mágico, mantém a sessão, navega pelas abas e sai", async ({
+  page,
+  context,
+}, testInfo) => {
+  // Só letras antes do "+": as iniciais do avatar ficam "MC".
+  const email = `marina.costa+${Date.now()}.${testInfo.workerIndex}@example.com`;
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveTitle("Chimponto");
+
+  await page.goto(await requestMagicLink(page, email));
+  await expect(page.getByRole("heading", { name: "Hoje", exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: email })).toHaveText("MC");
+
+  // Reabrir o app: página nova no mesmo navegador, sem passar pelo login.
+  await page.close();
+  const app = await context.newPage();
+  await app.goto("/");
+  await expect(app.getByRole("heading", { name: "Hoje", exact: true })).toBeVisible();
+  await app.goto("/login");
+  await expect(app).toHaveURL(/\/$/);
+  await app.goto("/rota-que-nao-existe");
+  await expect(app).toHaveURL(/\/$/);
+
+  const tabs = app.getByRole("navigation", { name: "Principal" });
+  await expect(tabs.getByRole("link")).toHaveText(["Hoje", "Período", "Salário", "Ajustes"]);
+  await expect(tabs.getByRole("link", { name: "Hoje" })).toHaveAttribute("aria-current", "page");
+
+  await tabs.getByRole("link", { name: "Período" }).click();
+  await expect(app.getByRole("heading", { name: "Período", exact: true })).toBeVisible();
+
+  await tabs.getByRole("link", { name: "Salário" }).click();
+  await expect(tabs.getByRole("link", { name: "Salário" })).toHaveAttribute("aria-current", "page");
+  await expect(tabs.getByRole("link", { name: "Hoje" })).not.toHaveAttribute("aria-current");
+  await expect(app.getByText("Em breve")).toBeVisible();
+
+  await tabs.getByRole("link", { name: "Ajustes" }).click();
+  await app.getByRole("button", { name: /Sair/ }).click();
+  await expect(app).toHaveURL(/\/login$/);
+
+  await app.goto("/ajustes");
+  await expect(app).toHaveURL(/\/login$/);
+});
+
+test("link mágico já usado mostra o erro e volta ao login", async ({ page }, testInfo) => {
+  const email = `link.usado+${Date.now()}.${testInfo.workerIndex}@example.com`;
+
+  const link = await requestMagicLink(page, email);
+  await page.goto(link);
+  await expect(page.getByRole("heading", { name: "Hoje", exact: true })).toBeVisible();
+  await page.goto("/ajustes");
+  await page.getByRole("button", { name: /Sair/ }).click();
+  await expect(page).toHaveURL(/\/login$/);
+
+  await page.goto(link);
+  const alert = page.getByRole("alert");
+  await expect(alert.getByRole("heading")).toHaveText("Esse link não vale mais");
+  await alert.getByRole("button", { name: "Tentar de novo" }).click();
+  await expect(page.getByRole("button", { name: "Receber link mágico" })).toBeVisible();
+});

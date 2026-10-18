@@ -1,0 +1,1 @@
+-- Dados sintéticos para desenvolvimento e E2E. Nunca dados reais (docs/05).

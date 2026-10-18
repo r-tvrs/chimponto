@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "test:e2e": "pnpm --filter @chimponto/web test:e2e"
+    "test:e2e": "pnpm --filter @chimponto/web test:e2e",
+    "db:types": "pnpm dlx supabase gen types typescript --local > apps/web/src/lib/database.types.ts && prettier --write apps/web/src/lib/database.types.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

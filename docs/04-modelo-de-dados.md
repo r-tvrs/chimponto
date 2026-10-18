@@ -119,7 +119,7 @@ unique(user_id, local_date, type). Índice `(status, send_at)`.
 | companies | membro | admin (UPDATE); INSERT via RPC `create_company` |
 | company_members | o próprio registro; admin vê membros (sem dados pessoais além do nome) | via RPC |
 | company_invites | admin | admin |
-| profiles | dono | dono |
+| profiles | dono | dono (INSERT/UPDATE); criado por trigger no cadastro; exclusão só via `delete_account` |
 | holidays | nacional ou da própria empresa | admin da empresa |
 | punches, punch_history, day_marks | dono | dono (`punch_history` só via trigger) |
 | vaults, salary_profiles, payslip_actuals | dono | dono |
@@ -141,4 +141,5 @@ Cada política tem teste: usuário A não lê/escreve linhas do usuário B; memb
 
 ## Triggers
 
+- `auth.users` (insert) → cria o `profiles` do novo usuário (o link mágico cria o usuário).
 - `punches` → grava `punch_history`; recalcula `scheduled_notifications` de `local_date` (cancela/cria/atualiza conforme §7 das regras).

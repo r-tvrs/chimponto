@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { balanceTone, formatBalance, formatDuration, spokenBalance } from "./format";
+import {
+  balanceTone,
+  formatBalance,
+  formatDuration,
+  formatLongDate,
+  spokenBalance,
+} from "./format";
 
 describe("formatDuration", () => {
   it.each([
@@ -44,5 +50,17 @@ describe("spokenBalance", () => {
     [120, "mais 2 horas e 0 minutos"],
   ])("%i -> %s", (min, expected) => {
     expect(spokenBalance(min)).toBe(expected);
+  });
+});
+
+describe("formatLongDate", () => {
+  it.each([
+    ["2026-10-16T12:00:00Z", "sex, 16 de outubro"],
+    ["2026-03-01T15:00:00Z", "dom, 1 de março"],
+    ["2026-08-22T13:00:00Z", "sáb, 22 de agosto"],
+    // 23:30 de sexta em São Paulo ainda é sexta, embora já seja sábado em UTC.
+    ["2026-10-17T02:30:00Z", "sex, 16 de outubro"],
+  ])("%s -> %s", (iso, expected) => {
+    expect(formatLongDate(new Date(iso))).toBe(expected);
   });
 });
