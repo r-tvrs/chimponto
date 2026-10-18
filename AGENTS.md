@@ -35,6 +35,8 @@ Leia antes de implementar qualquer coisa:
 
    Se o código mudar depois da review (correções incluídas), a review roda de novo. A regra vale mesmo quando outra skill (ex.: `implement`) manda commitar.
 
+   A review roda em uma janela nova (ou após `/clear`), não na janela da implementação. A implementação termina com o código no working tree, sem commit, e as decisões tomadas registradas em `docs/`. As correções da review e a review seguinte ficam na mesma janela da review. Quando o fixed point não é um commit, a chamada diz isso e cita a issue, por exemplo: `/code-review HEAD (working tree) issue #4`.
+
 ## Testes (obrigatório)
 
 **TDD em todo código com comportamento** (skill `tdd`): escrever o teste que falha → implementar o mínimo para passar. Um ciclo por fatia vertical; refatoração acontece na etapa de review. Testes só nas _seams_ (interfaces públicas) da tabela abaixo. Nenhum PR sem testes do comportamento que adiciona ou corrige.

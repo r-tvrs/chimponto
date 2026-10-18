@@ -20,6 +20,23 @@
 - Como aparecem HE, DSR, atrasos e adiantamento.
 - Conferir uma estimativa do app contra um holerite real.
 
+## Decisões em aberto
+
+Vindas da review do #4 (bater ponto). Comportamento atual mantido até decidir.
+
+| # | Questão | Comportamento atual | Afeta |
+|---|---|---|---|
+| 1 | Dia com 6+ batidas: a última vira "Retorno extra" e a 4ª, no meio do expediente, fica "Saída". O rótulo deveria refletir que a última é a saída do dia? | `docs/02` §2.1 ao pé da letra: 5ª+ alterna saída/retorno extra | `docs/02` §2.1, `labelDay`, toasts |
+| 2 | Limite da observação da batida | 200 caracteres (check no banco e `maxLength` no input) | `docs/04` `punches.note` |
+| 3 | Duas escritas da mesma batida com o mesmo `updated_at` e conteúdo diferente | `upsert_punch` mantém a primeira e devolve `applied` para a segunda | `upsert_punch`, sincronização offline (#6) |
+| 4 | Visual do erro de minuto duplicado no sheet | Bloco tingido `negative` com `TriangleAlert`; o handoff pede borda `negative` no campo + mensagem 12,5/700 | Sheet "Bater ponto" |
+| 5 | Teste da Hoje usa `vi.mock("@/data/profile")` (o perfil lê o Supabase direto) | Mock de módulo; alternativa é injetar o perfil por Context, como `Companies` e `Punches` | `today.test.tsx`, `data/profile.ts` |
+
+Para o #5 (já previsto no ticket, registrado aqui para não perder):
+
+- A Hoje não acompanha o relógio com a tela aberta: o rótulo da próxima batida (exceção de 2 batidas > 360 min) e a virada do dia à meia-noite só atualizam ao renderizar de novo.
+- CTA "Dia completo · 4 de 4 batidas" e hora prevista "prev." nas linhas pendentes.
+
 ## Implementação
 
 - Preencher `packages/domain/src/tax-tables/2026.ts` (INSS, IRRF, dedução por dependente, desconto simplificado, redutor Lei 15.270/2025) a partir de fonte oficial.
