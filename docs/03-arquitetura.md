@@ -63,6 +63,14 @@ Salário é cifrado ponta a ponta; o servidor não pode calcular. Saldo também 
 - Reenvio com backoff ao voltar a conexão (`online` event + ao abrir o app).
 - Leitura: cache do TanStack Query persistido no IndexedDB.
 
+Detalhes da implementação (`apps/web/src/punches/`):
+- Um banco Dexie `chimponto` com duas tabelas: `outbox` (por usuário, em ordem de `seq`) e `queryCache` (o cache do TanStack Query, guardado por clone estruturado; vale 7 dias).
+- A outbox guarda todas as escritas, em ordem, inclusive várias da mesma batida: o servidor recebe a mesma sequência que o aparelho viu, então um minuto liberado por uma edição pode ser usado por uma batida criada depois. Juntar as escritas de uma batida numa só (no lugar ou no fim da fila) quebra essa ordem.
+- A tela lê as batidas do servidor (cache) com a fila aplicada por cima, na ordem da fila. Sem conexão e sem o dia no cache (abrir num dia novo, virar o dia offline), o dia conta como vazio mais a fila: dá para bater ponto e o servidor acerta a tela quando a conexão volta.
+- O sincronizador (`createPunchSync`) roda ao abrir o app, no evento `online` e a cada escrita nova. Envia em ordem; `applied` e `stale` saem da fila só depois de recarregar as batidas do servidor (a batida não pisca na tela); `duplicate_minute` vira conflito e a fila segue (se uma escrita mais nova da mesma batida está na fila, conferida na mesma transação que marcaria o conflito, a antiga só sai); toda passada com resposta do servidor recarrega as batidas, inclusive a que só deu conflito, para a tela mostrar quem tomou o minuto; falha que passa sozinha (rede ou exceção, status 0, 401, 408, 429, 5xx) para a passada e tenta de novo em 1 s, dobrando até 1 min. Sucesso zera o backoff. Qualquer outro erro do servidor (ex.: 42501, 400) é `rejected`: vira conflito e a fila segue, para um item recusado não travar os seguintes.
+- Conflito fica na outbox até o usuário mudar a hora (nova escrita da mesma batida; só no `duplicate_minute`) ou descartar (ver `docs/07`).
+- A fila é do usuário: sair da sessão não apaga a fila; ela sobe no próximo login do mesmo usuário. O cache de leitura é limpo ao sair.
+
 ### D4 — Lembretes agendados no banco
 - Trigger em `punches` (insert/update/delete) recalcula as linhas de `scheduled_notifications` do dia afetado, conforme `02-regras-de-negocio.md` §7.
 - `pg_cron` a cada minuto chama (via `pg_net`) a Edge Function `send-notifications`, que busca `status='pending' AND send_at <= now()`, envia Web Push e marca `sent`/`failed`.

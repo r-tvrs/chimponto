@@ -9,7 +9,8 @@ import {
   toLocalTime,
   truncateToMinute,
 } from "@chimponto/domain";
-import { CircleCheck, Clock, Trash2, TriangleAlert } from "lucide-react";
+import { onlineManager } from "@tanstack/react-query";
+import { CircleCheck, Clock, CloudOff, Trash2, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { v7 as uuidv7 } from "uuid";
 import { useCompanyRules } from "@/company/company";
@@ -22,12 +23,7 @@ import { cn } from "@/lib/utils";
 import { PUNCH_LABELS } from "@/punches/punch-labels";
 import { type Punch, type PunchWrite, usePunchesOn, useWritePunch } from "@/punches/punches";
 
-type Problem = "duplicate" | "stale" | "failed";
-
-const PROBLEM_TEXT: Record<Exclude<Problem, "duplicate">, string> = {
-  stale: "Essa batida mudou em outro aparelho. Confira e tente de novo.",
-  failed: "Não deu para salvar. Confira a conexão e tente de novo.",
-};
+const OFFLINE_TOAST = "Salvo no aparelho. Sobe quando o sinal voltar.";
 
 /**
  * Sheet "Bater ponto" (handoff §2 com os ajustes de docs/07): data e hora pré-preenchidas, sem
@@ -44,12 +40,11 @@ export function PunchSheet({
   const writePunch = useWritePunch();
   const toast = useToast();
   const [initialInstant] = useState(() => truncateToMinute(editing?.punchedAt ?? new Date()));
-  // Um id por sheet: se a resposta se perder, tentar de novo reenvia a mesma batida.
+  // Um id por sheet: salvar de novo antes de a fila subir substitui a mesma batida.
   const [id] = useState(() => editing?.id ?? uuidv7());
   const [date, setDate] = useState(toLocalDate(initialInstant));
   const [time, setTime] = useState(toLocalTime(initialInstant));
   const [note, setNote] = useState(editing?.note ?? "");
-  const [problem, setProblem] = useState<Problem | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -59,47 +54,37 @@ export function PunchSheet({
   const preview =
     candidate && day.data && rules && previewPunch(day.data, candidate, rules, new Date());
   const duplicate = !!candidate && !!day.data && isDuplicateMinute(day.data, candidate);
-  const shownProblem = duplicate ? "duplicate" : problem;
 
-  /** Mudar data ou hora apaga o erro do último envio. */
-  function editField(update: () => void) {
-    update();
-    setProblem(null);
-  }
-
-  async function write(punch: PunchWrite): Promise<boolean> {
+  /** Grava na outbox e fecha; sem conexão, o toast avisa que a batida ficou no aparelho. */
+  async function write(punch: PunchWrite, text: string, icon?: typeof Trash2) {
     setSaving(true);
-    const result = await writePunch(punch);
-    setSaving(false);
-    if (result === "applied") return true;
-    setProblem(result === "duplicate_minute" ? "duplicate" : result);
-    return false;
+    await writePunch(punch);
+    onClose();
+    if (onlineManager.isOnline()) toast(text, icon);
+    else toast(OFFLINE_TOAST, CloudOff);
   }
 
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!at || !preview || duplicate) return;
-    const saved = await write({
-      id,
-      punchedAt: at,
-      source: editing?.source ?? "manual",
-      note: note.trim() || null,
-      updatedAt: new Date(),
-      deletedAt: null,
-    });
-    if (!saved) return;
-    onClose();
     // Toast temático só na batida nova; na edição, a confirmação neutra (docs/07).
-    toast(editing ? `Batida das ${time} salva.` : PUNCH_LABELS[preview.label].toast(time));
+    await write(
+      {
+        id,
+        punchedAt: at,
+        source: editing?.source ?? "manual",
+        note: note.trim() || null,
+        updatedAt: new Date(),
+        deletedAt: null,
+      },
+      editing ? `Batida das ${time} salva.` : PUNCH_LABELS[preview.label].toast(time),
+    );
   }
 
   async function remove() {
     if (!editing) return;
     const now = new Date();
-    if (await write({ ...editing, updatedAt: now, deletedAt: now })) {
-      onClose();
-      toast("Batida excluída.", Trash2);
-    }
+    await write({ ...editing, updatedAt: now, deletedAt: now }, "Batida excluída.", Trash2);
   }
 
   return (
@@ -116,7 +101,7 @@ export function PunchSheet({
               type="date"
               required
               value={date}
-              onChange={(e) => editField(() => setDate(e.target.value))}
+              onChange={(e) => setDate(e.target.value)}
               className="h-14 bg-background px-3 text-[15px] font-bold tabular-nums"
             />
           </label>
@@ -126,21 +111,19 @@ export function PunchSheet({
               type="time"
               required
               value={time}
-              onChange={(e) => editField(() => setTime(e.target.value))}
+              onChange={(e) => setTime(e.target.value)}
               className="h-14 bg-background px-3 text-[22px] font-extrabold tabular-nums"
             />
           </label>
         </div>
 
-        {shownProblem ? (
+        {duplicate ? (
           <p
             role="alert"
             className="flex items-center gap-2.5 rounded-[14px] bg-negative/12 px-3.5 py-3 text-[13px] leading-[1.4] font-bold text-negative"
           >
             <TriangleAlert className="size-[18px] shrink-0" aria-hidden />
-            {shownProblem === "duplicate"
-              ? `Já tem uma batida às ${time}.`
-              : PROBLEM_TEXT[shownProblem]}
+            Já tem uma batida às {time}.
           </p>
         ) : (
           preview && (

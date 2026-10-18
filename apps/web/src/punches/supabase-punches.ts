@@ -21,7 +21,7 @@ export const supabasePunches: Punches = {
   },
 
   async upsert(write) {
-    const { data, error } = await supabase.rpc("upsert_punch", {
+    const { data, error, status } = await supabase.rpc("upsert_punch", {
       id: write.id,
       punched_at: write.punchedAt.toISOString(),
       source: write.source,
@@ -31,6 +31,11 @@ export const supabasePunches: Punches = {
       // null explícito: sem a chave, o PostgREST não acha a função.
       deleted_at: (write.deletedAt?.toISOString() ?? null) as string,
     });
-    return error ? "failed" : data;
+    if (!error) return data;
+    // 0 é falha de rede; 401 (sessão expirada), 408, 429 e 5xx passam sozinhos. O resto (ex.:
+    // 42501 da RLS, 400 de argumento inválido) o servidor recusaria de novo.
+    return status === 0 || [401, 408, 429].includes(status) || status >= 500
+      ? "failed"
+      : "rejected";
   },
 };

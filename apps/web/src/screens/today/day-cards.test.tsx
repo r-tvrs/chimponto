@@ -64,7 +64,7 @@ describe("NextCard mascot", () => {
       "Bolota coçando a cabeça",
     ],
   ])("shows its mood for %s", (_, summary, alt) => {
-    render(<NextCard summary={summary} expectedLunchMinutes={60} />);
+    render(<NextCard summary={summary} expectedLunchMinutes={60} offline={false} />);
 
     expect(screen.getByRole("img", { name: alt })).toBeVisible();
   });

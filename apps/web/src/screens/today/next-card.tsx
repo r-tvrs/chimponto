@@ -10,8 +10,9 @@ import { type Humor, Mascote } from "@/components/mascote";
 import { Saldo } from "@/components/saldo";
 import { PUNCH_LABELS } from "@/punches/punch-labels";
 
-/** Humor da Bolota na Hoje (handoff §1, "Mascote da Hoje"), a partir do resumo do dia. */
-function humorOf(summary: DaySummary): Humor {
+/** Humor da Bolota na Hoje (handoff §1, "Mascote da Hoje"): `offline` sem conexão, senão pelo resumo do dia. */
+function humorOf(summary: DaySummary, offline: boolean): Humor {
+  if (offline) return "offline";
   switch (summary.status) {
     case "incomplete":
     case "pending":
@@ -68,9 +69,11 @@ function contextOf(next: NextPunch, expectedMinutes: number, expectedLunchMinute
 export function NextCard({
   summary,
   expectedLunchMinutes,
+  offline,
 }: {
   summary: DaySummary;
   expectedLunchMinutes: number;
+  offline: boolean;
 }) {
   const eyebrowId = useId();
   const { next } = summary;
@@ -102,7 +105,7 @@ export function NextCard({
       aria-labelledby={eyebrowId}
       className="flex items-center gap-3.5 rounded-[20px] border bg-card p-4"
     >
-      <Mascote humor={humorOf(summary)} size={84} />
+      <Mascote humor={humorOf(summary, offline)} size={84} />
       <div className="flex min-w-0 flex-col gap-1">
         <span
           id={eyebrowId}
