@@ -8,6 +8,8 @@ import { routes } from "./app/routes";
 import { SupabaseAuthProvider } from "./auth/supabase-auth-provider";
 import { CompaniesContext } from "./company/company";
 import { supabaseCompanies } from "./company/supabase-companies";
+import { PunchesContext } from "./punches/punches";
+import { supabasePunches } from "./punches/supabase-punches";
 
 const queryClient = new QueryClient();
 const router = createBrowserRouter(routes);
@@ -17,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <SupabaseAuthProvider>
         <CompaniesContext.Provider value={supabaseCompanies}>
-          <RouterProvider router={router} />
+          <PunchesContext.Provider value={supabasePunches}>
+            <RouterProvider router={router} />
+          </PunchesContext.Provider>
         </CompaniesContext.Provider>
       </SupabaseAuthProvider>
     </QueryClientProvider>

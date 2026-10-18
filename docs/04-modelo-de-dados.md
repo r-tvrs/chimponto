@@ -57,7 +57,7 @@ unique(company_id, date)
 | punched_at | timestamptz | segundos = 0 |
 | local_date | date | gerada: `(punched_at at time zone 'America/Sao_Paulo')::date` |
 | source | text | `manual` \| `ocr` |
-| note | text null | |
+| note | text null | até 200 caracteres |
 | created_at / updated_at | timestamptz | `updated_at` vem do cliente (LWW) |
 | deleted_at | timestamptz null | soft delete |
 Índice único parcial: `(user_id, punched_at) where deleted_at is null`. Índice `(user_id, local_date)`.
@@ -121,7 +121,8 @@ unique(user_id, local_date, type). Índice `(status, send_at)`.
 | company_invites | admin | admin |
 | profiles | dono | dono (INSERT/UPDATE); criado por trigger no cadastro; exclusão só via `delete_account` |
 | holidays | nacional ou da própria empresa | admin da empresa |
-| punches, punch_history, day_marks | dono | dono (`punch_history` só via trigger) |
+| punches, punch_history | dono | `punches` só via RPC `upsert_punch` (sem DELETE físico; exclusão é `deleted_at`); `punch_history` só via trigger |
+| day_marks | dono | dono |
 | vaults, salary_profiles, payslip_actuals | dono | dono |
 | push_subscriptions | dono | dono |
 | scheduled_notifications | dono | apenas sistema |

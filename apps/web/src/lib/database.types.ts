@@ -100,15 +100,102 @@ export type Database = {
         };
         Relationships: [];
       };
+      punch_history: {
+        Row: {
+          action: string;
+          changed_at: string;
+          id: number;
+          new: Json | null;
+          old: Json | null;
+          punch_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          changed_at?: string;
+          id?: never;
+          new?: Json | null;
+          old?: Json | null;
+          punch_id: string;
+          user_id: string;
+        };
+        Update: {
+          action?: string;
+          changed_at?: string;
+          id?: never;
+          new?: Json | null;
+          old?: Json | null;
+          punch_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "punch_history_punch_id_fkey";
+            columns: ["punch_id"];
+            isOneToOne: false;
+            referencedRelation: "punches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      punches: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          local_date: string;
+          note: string | null;
+          punched_at: string;
+          source: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id: string;
+          local_date?: never;
+          note?: string | null;
+          punched_at: string;
+          source: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          local_date?: never;
+          note?: string | null;
+          punched_at?: string;
+          source?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
       create_company: { Args: { name: string; rules: Json }; Returns: string };
+      upsert_punch: {
+        Args: {
+          deleted_at: string;
+          id: string;
+          note: string;
+          punched_at: string;
+          source: string;
+          updated_at: string;
+        };
+        Returns: Database["public"]["Enums"]["upsert_punch_result"];
+      };
     };
     Enums: {
-      [_ in never]: never;
+      upsert_punch_result: "applied" | "stale" | "duplicate_minute";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -222,6 +309,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      upsert_punch_result: ["applied", "stale", "duplicate_minute"],
+    },
   },
 } as const;

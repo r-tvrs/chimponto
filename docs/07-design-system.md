@@ -41,6 +41,12 @@ A spec completa está em [`design/design_handoff_chimponto/README.md`](../design
 | Cofre "tranca sozinho após 5 min" | Abre uma vez por aparelho e fica lembrado (`docs/05`). Ajustes: "Trancar cofre agora" com apoio "Fica aberto neste aparelho até você trancar" |
 | Push com ações "Bater agora" e "Lembrar em 5 min" | Só "Bater agora" |
 | Sheet "Bater ponto" com grade 2×2 para escolher o tipo | Sem escolha de tipo. No lugar da grade, texto derivado da hora escolhida: "Vai entrar como **volta do almoço**" (`docs/02` §2.1), recalculado ao vivo |
+| Card Batidas sempre com 4 linhas, "N de 4" | 4 linhas, ou o total quando passa de 4, arredondado para par: 5 batidas mostram "5 de 6". A próxima linha tem o rótulo que uma batida agora teria (o mesmo do CTA); as pendentes são os rótulos de um dia completo ainda não cobertos (dia só com entrada e saída mostra o almoço que falta). Lógica em `daySlots` (`packages/domain`) |
+| Sheet só para nova batida | Tocar numa batida feita abre "Editar batida" ("Vai ficar como **…**"), com "Excluir batida" (`Trash2`). Excluir pede confirmação: "Excluir a batida das HH:MM?" · "Ela sai do dia e fica só no histórico." · Cancelar / Excluir. Salvar a edição mostra "Batida das HH:MM salva." (o toast temático é só da batida nova). Toast "Batida excluída." |
+| Toasts só das 4 batidas | Extras: "Saída extra às HH:MM." e "De volta ao galho! Retorno às HH:MM." |
+| Sheet sem estados de erro | Mesmo minuto de outra batida: "Já tem uma batida às HH:MM." e "Salvar batida" desabilitado. Falha: "Não deu para salvar. Confira a conexão e tente de novo." Versão mais nova em outro aparelho: "Essa batida mudou em outro aparelho. Confira e tente de novo." |
+| Link "Usar foto do comprovante" no sheet | Some até o OCR (v1.1) |
+| CTA "Dia completo · 4 de 4 batidas" e hora prevista "prev." nas linhas pendentes | Chegam com o saldo do dia e as previsões (#5). Até lá, o CTA oferece a próxima batida (num dia par de 4+, a extra) e as pendentes mostram "—" |
 
 ## Regras globais de UI (resumo do handoff)
 
