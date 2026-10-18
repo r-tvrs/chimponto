@@ -28,6 +28,12 @@ Leia antes de implementar qualquer coisa:
 6. **Nunca commitar** `.env*`, chaves (`service_role`), fotos de comprovantes ou holerites reais. Fixtures de teste são sintéticas.
 7. Valores marcados 🔶 nos docs são padrões provisórios: implementar como **configuração**, nunca hardcoded.
 8. **UI segue o handoff de design** (`design/design_handoff_chimponto/`), com os ajustes de `docs/07`. Em conflito de comportamento ou cálculo, `docs/` prevalece; o handoff manda em aparência e microcopy.
+9. **Nenhum commit sem `/code-review` e aprovação do usuário.** Antes de qualquer commit:
+   1. rodar a skill `code-review` sobre o diff;
+   2. mostrar ao usuário os dois relatórios completos (Standards e Spec);
+   3. esperar a aprovação explícita do usuário para commitar.
+
+   Se o código mudar depois da review (correções incluídas), a review roda de novo. A regra vale mesmo quando outra skill (ex.: `implement`) manda commitar.
 
 ## Testes (obrigatório)
 
