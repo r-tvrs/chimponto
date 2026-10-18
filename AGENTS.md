@@ -33,6 +33,8 @@ Leia antes de implementar qualquer coisa:
    2. mostrar ao usuário os dois relatórios completos (Standards e Spec);
    3. esperar a aprovação explícita do usuário para commitar.
 
+   A review libera o commit quando o eixo Spec não aponta bug de comportamento e o eixo Standards não aponta violação de regra documentada. Smells e escopo extra já registrado em `docs/` não bloqueiam: vão para `docs/08-pendencias.md`.
+
    Se o código mudar depois da review (correções incluídas), a review roda de novo. A regra vale mesmo quando outra skill (ex.: `implement`) manda commitar.
 
    A review roda em uma janela nova (ou após `/clear`), não na janela da implementação. A implementação termina com o código no working tree, sem commit, e as decisões tomadas registradas em `docs/`. As correções da review e a review seguinte ficam na mesma janela da review. Quando o fixed point não é um commit, a chamada diz isso e cita a issue, por exemplo: `/code-review HEAD (working tree) issue #4`.
