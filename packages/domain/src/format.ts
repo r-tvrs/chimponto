@@ -1,4 +1,4 @@
-import { WEEKDAYS } from "./company-rules";
+import { WEEKDAYS, type Weekday } from "./company-rules";
 import { type LocalDate, weekdayOf } from "./local-time";
 
 // Formatação de durações, saldos e datas (docs/07: saldo sempre com sinal + cor).
@@ -100,4 +100,15 @@ export function formatMonth(date: LocalDate): string {
 /** "sex". */
 export function formatWeekday(date: LocalDate): string {
   return WEEKDAYS_SHORT[WEEKDAYS.indexOf(weekdayOf(date))]!;
+}
+
+/** Dias de jornada para os Ajustes: 3+ dias seguidos viram faixa ("seg a sex"), senão lista ("seg, qua"). */
+export function formatWorkdays(days: Weekday[]): string {
+  const indexes = days.map((day) => WEEKDAYS.indexOf(day)).sort((a, b) => a - b);
+  const first = indexes[0]!;
+  const last = indexes.at(-1)!;
+  if (indexes.length >= 3 && last - first === indexes.length - 1) {
+    return `${WEEKDAYS_SHORT[first]} a ${WEEKDAYS_SHORT[last]}`;
+  }
+  return indexes.map((i) => WEEKDAYS_SHORT[i]).join(", ");
 }

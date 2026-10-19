@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from "react-router";
 import { AppShell, ChildLayout, TabsLayout } from "@/components/app-shell";
 import { DayScreen } from "@/screens/day";
 import { CompanyScreen } from "@/screens/company";
+import { CompanyRulesScreen } from "@/screens/company-rules";
 import { LoginScreen } from "@/screens/login";
 import { PeriodScreen } from "@/screens/period";
 import { SalaryScreen } from "@/screens/salary";
@@ -52,7 +53,10 @@ export const routes: RouteObject[] = [
           },
           {
             element: <ChildLayout />,
-            children: [{ path: "periodo/:date", element: <DayScreen /> }],
+            children: [
+              { path: "periodo/:date", element: <DayScreen /> },
+              { path: "ajustes/empresa", element: <CompanyRulesScreen /> },
+            ],
           },
         ],
       },

@@ -59,10 +59,12 @@ function fakeCompanies(rules: Partial<CompanyRules> = {}): Companies {
   return {
     membershipOf: async () => ({
       companyId: "company-1",
+      companyName: "Lumen Software",
       role: "member",
       rules: companyRulesSchema.parse(rules),
     }),
     create: async () => "already_member",
+    updateRules: async () => "failed",
   };
 }
 

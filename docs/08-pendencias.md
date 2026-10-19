@@ -95,6 +95,9 @@ Vindas do #8 (tela Dia). Comportamento atual mantido até decidir.
 | 25 | Hoje não lê `day_marks` | A Hoje calcula o dia sem marcação. O Dia só abre dias passados, então a marcação de hoje só chega por outro caminho (não existe na v1) | Hoje |
 | 26 | Contagem de faltas do período | `summarizePeriod` devolve `absenceDays`, mas nenhuma tela mostra; cada dia da lista mostra o badge "Falta" | Período |
 | 27 | Cobertura de testes do #9 | O pgTAP "B marca a mesma data sem tocar na de A" não relê a linha de A (o isolamento vem do `auth.uid()` da RPC); nenhum teste salva uma marcação sem conexão de ponta a ponta (fila, outbox e mescla testadas em separado) | Testes |
+| 28 | Toast de falha com um sheet aberto (nome de exibição) | O Radix esconde o resto da tela dos leitores de tela enquanto o sheet está aberto; o toast "Não deu para salvar o nome." aparece, mas não é anunciado. Correção prevista: mensagem de erro dentro do sheet, ou o toast num portal fora do `aria-hidden` | Ajustes, a11y |
+| 29 | `<meta name="theme-color">` segue o sistema, não o tema escolhido | Com "Escuro" num aparelho claro, a barra do navegador fica clara. Correção prevista: `initTheme`/`setTheme` trocarem o `content` da meta | Tema |
+| 30 | Tema aplicado só quando o JS carrega | Em "Escuro" num aparelho claro, a primeira pintura pode sair clara por um instante. Correção prevista: script inline no `index.html` lendo `chimponto:theme` | Tema |
 
 Refatorações apontadas na review do #8 (sem efeito no comportamento):
 
@@ -137,6 +140,17 @@ Vindas do #9 (tipo do dia). Comportamento atual mantido até decidir.
 - `"write" in item` em `sync.ts` repete o `isPunch` exportado por `punches.ts`; `"mark" in item` em `useDayMarksBetween` idem.
 - `sync.test.ts` repete o literal de `DayMarkWrite` nos dois testes de marcação; candidato a um `mark()` ao lado de `write()`. O teste da marcação recusada não confere a chamada a `upsertMark` (coberto de forma implícita: a marcação só sai da fila depois de enviada).
 - O comentário de `createPunchSync` (`sync.ts`) diz que `rejected` vira conflito antes de abrir a exceção da marcação; a leitura fica ambígua.
+
+Vindas do #10 (Ajustes). Comportamento atual mantido até decidir.
+
+- Percentual digitado com "%" ("50%") em Regras da empresa é recusado com "Digite um percentual"; o usuário corrige tirando o "%".
+- `WEEKDAY_LABELS` em `company-rules.tsx` copia `WEEKDAYS_SHORT` de `domain/format.ts` (não exportado); exportar um mapa só.
+- Título de grupo (`<h2 className="mx-1 mt-2 … tracking-[0.08em] … uppercase">`) repetido em `Card` (`company-rules.tsx`), `Group` (`settings.tsx`) e `period/day-list.tsx`; candidato a `SectionLabel`.
+- `ERRORS` em `company-rules.tsx` escreve os limites do schema à mão ("até 24h00", "de 0 a 1440", "de 1 a 28"); se o schema mudar, a mensagem fica errada. Candidato a mensagens montadas a partir de `MINUTES_PER_DAY`/`dayOfMonth`.
+- `toForm`/`parseForm` convertem percentual no componente (`Math.round(rate * 10_000) / 100`, `/ 100`); candidatos a `formatPercent`/`parsePercent` em `domain/format.ts`.
+- `"saved" | "failed"` repetido em `company.ts` (duas vezes) e `profile.ts`; candidato a um `SaveResult`.
+- `settings.test.tsx` imita a cadeia do cliente Supabase (`from().select().eq().maybeSingle()`, `update().eq()`); o perfil não tem uma porta como `Companies` para receber um fake.
+- "Flexível" fixo no JSX de `company-rules.tsx` em vez de ler `rules.scheduleMode` (hoje o único valor do enum).
 
 ## Implementação
 

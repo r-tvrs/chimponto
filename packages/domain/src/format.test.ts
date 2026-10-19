@@ -11,6 +11,7 @@ import {
   parseDuration,
   spokenBalance,
   formatWeekday,
+  formatWorkdays,
 } from "./format";
 
 describe("formatDuration", () => {
@@ -131,5 +132,18 @@ describe("calendar dates", () => {
     expect(formatMonth("2026-03-01")).toBe("março");
     expect(formatWeekday("2026-10-16")).toBe("sex");
     expect(formatWeekday("2026-10-18")).toBe("dom");
+  });
+});
+
+describe("formatWorkdays", () => {
+  it.each([
+    [["mon", "tue", "wed", "thu", "fri"], "seg a sex"],
+    [["mon", "tue", "wed", "thu", "fri", "sat"], "seg a sáb"],
+    [["sat", "fri", "thu", "wed", "tue", "mon"], "seg a sáb"],
+    [["mon", "wed", "fri"], "seg, qua, sex"],
+    [["mon", "tue"], "seg, ter"],
+    [["sun"], "dom"],
+  ] as const)("%j -> %s", (days, text) => {
+    expect(formatWorkdays([...days])).toBe(text);
   });
 });

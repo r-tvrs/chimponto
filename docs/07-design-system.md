@@ -75,6 +75,11 @@ A spec completa está em [`design/design_handoff_chimponto/README.md`](../design
 | Observação do Dia | Sem o campo no #9 (ver `docs/08` #15). O app preserva a `note` já salva ao trocar o tipo |
 | Nota do dia abonado "conta como 8h48 trabalhadas" | Atestado, férias, folga e abono: "Dia abonado: não conta jornada." (`docs/02` §3: a jornada esperada vai a 0, as batidas continuam contando) |
 | Chips do tipo do dia | Ficam entre os alertas e o card Batidas. Não selecionado: `bg-muted`. "Folga" grava `folga_compensada`. Fora de Normal, o card fica com opacidade 0,5 e continua editável. "Salvar dia" grava o tipo pela outbox junto com as batidas, só se mudou; voltar a Normal exclui a marcação (`deleted_at`) |
+| Ajustes com todos os grupos (§9) | Na v1: card de perfil, Empresa (só a linha da empresa, sem Feriados e Convidar), Conta (Sair) e Aparência. Notificações, Cofre, Dados salariais, Privacidade, Exportar e Excluir conta ficam ocultos até as fases deles |
+| Card de perfil só exibe | Tocar no card abre o sheet "Seu nome" com "Nome de exibição" e "Salvar". Vazio grava `null` e o avatar volta às iniciais do e-mail. Falha: toast "Não deu para salvar o nome. Tente de novo." e o sheet fica aberto |
+| Linha da empresa com toast "Só o admin da empresa edita a jornada" | Abre a tela filha Empresa (`/ajustes/empresa`), com todos os campos de `docs/02` §1 em três cards (Jornada · Período e pagamento · Horas extras). Durações como "8h00", adicionais em %, `scheduleMode` só exibido ("Flexível"), dias como chips seg–dom, booleanos como Switch. Validação pelo `companyRulesSchema`, com uma mensagem pt-BR por campo. Admin: "Salvar regras" grava, toast "Regras da empresa salvas." e volta a Ajustes (`replace`); falha: toast "Não deu para salvar as regras. Tente de novo.". Membro: campos desabilitados, aviso "Só o admin da empresa edita a jornada." e sem botão |
+| Resumo da empresa "Jornada 8h48 · seg a sex · almoço 1h" | Dos valores das regras: 3+ dias seguidos viram faixa ("seg a sáb"), senão lista ("seg, qua, sex") (`formatWorkdays`) |
+| Aparência sem regra de persistência | Escolha guardada no aparelho (`localStorage`, chave `chimponto:theme`); "Sistema" acompanha `prefers-color-scheme` ao vivo |
 
 ## Regras globais de UI (resumo do handoff)
 

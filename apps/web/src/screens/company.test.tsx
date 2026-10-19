@@ -28,12 +28,18 @@ function fakeCompanies(membership: Membership | null, ...createResults: CreateCo
   let current = membership;
   return {
     membershipOf: vi.fn<Companies["membershipOf"]>(async () => current),
-    create: vi.fn<Companies["create"]>(async () => {
+    create: vi.fn<Companies["create"]>(async (name) => {
       const result = createResults.shift() ?? "created";
       if (result !== "failed")
-        current = { companyId: "company-1", role: "admin", rules: companyRulesSchema.parse({}) };
+        current = {
+          companyId: "company-1",
+          companyName: name,
+          role: "admin",
+          rules: companyRulesSchema.parse({}),
+        };
       return result;
     }),
+    updateRules: vi.fn<Companies["updateRules"]>(async () => "failed"),
   } satisfies Companies;
 }
 
@@ -91,6 +97,7 @@ describe("company guard", () => {
       at: "/empresa",
       companies: fakeCompanies({
         companyId: "company-1",
+        companyName: "Lumen Software",
         role: "admin",
         rules: companyRulesSchema.parse({}),
       }),
@@ -103,6 +110,7 @@ describe("company guard", () => {
   it("shows the generic error when the company can't be loaded, and retries on demand", async () => {
     const companies = fakeCompanies({
       companyId: "company-1",
+      companyName: "Lumen Software",
       role: "admin",
       rules: companyRulesSchema.parse({}),
     });
