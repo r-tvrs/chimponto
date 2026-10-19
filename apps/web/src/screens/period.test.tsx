@@ -8,7 +8,7 @@ import { type Auth, AuthContext } from "@/auth/auth";
 import { type Companies, CompaniesContext } from "@/company/company";
 import { OfflineDb } from "@/lib/offline-db";
 import { createOutbox, OutboxContext } from "@/punches/outbox";
-import { type Punch, type Punches, PunchesContext } from "@/punches/punches";
+import { type Punch, type Punches, PunchesContext, type SavedDayMark } from "@/punches/punches";
 import { PeriodScreen } from "./period";
 
 // Sexta, 16/10/2026: período atual 20/09 → 19/10.
@@ -32,7 +32,7 @@ function day(date: string, ...times: string[]): Punch[] {
   }));
 }
 
-function fakePunches(rows: Punch[]): Punches {
+function fakePunches(rows: Punch[], marks: SavedDayMark[] = []): Punches {
   const inRange = (p: Punch, start: string, end: string) => {
     const date = toLocalDate(p.punchedAt);
     return date >= start && date <= end;
@@ -41,6 +41,8 @@ function fakePunches(rows: Punch[]): Punches {
     onDate: async (date) => rows.filter((p) => inRange(p, date, date)),
     between: vi.fn(async (start, end) => rows.filter((p) => inRange(p, start, end))),
     upsert: async () => "applied",
+    marksBetween: async (start, end) => marks.filter((m) => m.date >= start && m.date <= end),
+    upsertMark: async () => "applied",
   };
 }
 
@@ -66,6 +68,7 @@ function renderPeriod(
   punches: Punch[],
   companies = fakeCompanies(),
   entry: { pathname: string; state?: unknown } = { pathname: "/periodo" },
+  marks: SavedDayMark[] = [],
 ) {
   const db = new OfflineDb(`period-test-${++dbCount}`);
   dbs.push(db);
@@ -74,7 +77,7 @@ function renderPeriod(
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={auth}>
         <CompaniesContext.Provider value={companies}>
-          <PunchesContext.Provider value={fakePunches(punches)}>
+          <PunchesContext.Provider value={fakePunches(punches, marks)}>
             <OutboxContext.Provider value={createOutbox(db)}>
               <MemoryRouter initialEntries={[entry]}>
                 <Routes>
@@ -210,6 +213,23 @@ describe("day list", () => {
 
     expect(row(label)).toHaveTextContent(badge);
     expect(row(label)).toHaveTextContent(worked);
+  });
+
+  it.each([
+    ["falta", "Falta", "bg-negative/12"],
+    ["atestado", "Atestado", "bg-muted"],
+    ["ferias", "Férias", "bg-muted"],
+    ["folga_compensada", "Folga", "bg-muted"],
+    ["abono", "Abono", "bg-muted"],
+  ] as const)("marks a day of type %s with the badge %s", async (type, text, tone) => {
+    const mark = { date: "2026-10-12", type, note: null, updatedAt: new Date() };
+    renderPeriod([], fakeCompanies(), undefined, [mark]);
+    await screen.findByRole("list", { name: "Dias do período" });
+
+    const badge = row("seg, 12 out").querySelector("[data-slot=badge]");
+    expect(badge).toHaveTextContent(text);
+    expect(badge).toHaveClass(tone);
+    expect(row("seg, 12 out")).not.toHaveTextContent("Sem registro");
   });
 
   it("says 1 batida, in the singular, for a day with a single punch", async () => {

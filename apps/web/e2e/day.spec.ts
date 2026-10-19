@@ -58,7 +58,47 @@ test("completa um dia incompleto pela tela Dia e vê o período atualizado", asy
   await page.getByRole("link", { name: "Hoje" }).click();
   await expect(page.getByText(/na fila/)).toBeHidden();
   await page.reload();
-  await page.getByRole("link", { name: "Período" }).click();
+  await page.getByRole("link", { name: "Período", exact: true }).click();
   while (!(await selector.textContent())?.includes("20 ago → 19 set")) await previous.click();
   await expect(row).toContainText("+0h20");
+});
+
+test("marca um dia como atestado e vê o badge e o saldo no período", async ({ page }, testInfo) => {
+  const email = `rui.lopes+${Date.now()}.${testInfo.workerIndex}@example.com`;
+  await page.goto(await requestMagicLink(page, email));
+  await createCompany(page, "Bananal Ltda");
+
+  await punchDay(page, "2026-09-16", "09:00", "11:00", "12:00", "14:00"); // qua, 4h
+
+  await page.getByRole("link", { name: /Saldo do período · / }).click();
+  const selector = page.getByRole("group", { name: "Período" });
+  const previous = selector.getByRole("button", { name: "Período anterior" });
+  while (!(await selector.textContent())?.includes("20 ago → 19 set")) await previous.click();
+
+  const row = page.getByRole("listitem", { name: "qua, 16 set" });
+  await expect(row).toContainText("−4h00");
+  await row.getByRole("link").click();
+
+  await page
+    .getByRole("group", { name: "Tipo do dia" })
+    .getByRole("button", { name: "Atestado" })
+    .click();
+  await expect(page.getByText("Dia abonado: não conta jornada.")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Saldo do dia" })).toContainText("+4h00");
+  await page.getByRole("button", { name: "Salvar dia" }).click();
+
+  await expect(page.getByRole("status")).toContainText("Dia 16 salvo");
+  await expect(row).toContainText("Atestado");
+  await expect(row).toContainText("+4h00");
+  const summary = page.getByRole("region", { name: "Saldo do período" });
+  await expect(summary.getByRole("group", { name: "Horas extras" })).toContainText("+4h00");
+
+  // Sobe pela fila: com a fila vazia, a marcação volta do servidor.
+  await page.getByRole("link", { name: "Hoje" }).click();
+  await expect(page.getByText(/na fila/)).toBeHidden();
+  await page.reload();
+  await page.getByRole("link", { name: "Período", exact: true }).click();
+  while (!(await selector.textContent())?.includes("20 ago → 19 set")) await previous.click();
+  await expect(row).toContainText("Atestado");
+  await expect(row).toContainText("+4h00");
 });

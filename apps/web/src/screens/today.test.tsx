@@ -77,6 +77,8 @@ function fakePunches(initial: Punch[]) {
       rows.set(write.id, write);
       return "applied";
     }),
+    marksBetween: vi.fn<Punches["marksBetween"]>(async () => []),
+    upsertMark: vi.fn<Punches["upsertMark"]>(async () => "applied"),
   } satisfies Punches & { failNextWith: unknown };
 }
 

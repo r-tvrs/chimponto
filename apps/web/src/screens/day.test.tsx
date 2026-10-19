@@ -14,8 +14,8 @@ import { type Auth, AuthContext } from "@/auth/auth";
 import { type Companies, CompaniesContext } from "@/company/company";
 import { ToastProvider } from "@/components/toast";
 import { OfflineDb } from "@/lib/offline-db";
-import { createOutbox, type Outbox, OutboxContext } from "@/punches/outbox";
-import { type Punch, type Punches, PunchesContext } from "@/punches/punches";
+import { createOutbox, type Outbox, OutboxContext, type OutboxItem } from "@/punches/outbox";
+import { type Punch, type Punches, PunchesContext, type SavedDayMark } from "@/punches/punches";
 import { DayScreen } from "./day";
 import { PeriodScreen } from "./period";
 
@@ -41,7 +41,7 @@ function day(date: string, ...times: string[]): Punch[] {
   }));
 }
 
-function fakePunches(rows: Punch[]): Punches {
+function fakePunches(rows: Punch[], marks: SavedDayMark[] = []): Punches {
   const inRange = (p: Punch, start: string, end: string) => {
     const date = toLocalDate(p.punchedAt);
     return date >= start && date <= end;
@@ -50,6 +50,8 @@ function fakePunches(rows: Punch[]): Punches {
     onDate: async (date) => rows.filter((p) => inRange(p, date, date)),
     between: async (start, end) => rows.filter((p) => inRange(p, start, end)),
     upsert: async () => "applied",
+    marksBetween: async (start, end) => marks.filter((m) => m.date >= start && m.date <= end),
+    upsertMark: async () => "applied",
   };
 }
 
@@ -140,6 +142,9 @@ afterEach(async () => {
 });
 
 const punchesCard = () => screen.findByRole("group", { name: "Batidas" });
+
+const punchWrites = (items: OutboxItem[]) => items.flatMap((i) => ("write" in i ? [i.write] : []));
+const markWrites = (items: OutboxItem[]) => items.flatMap((i) => ("mark" in i ? [i.mark] : []));
 
 describe("day screen", () => {
   it("shows the period, the date, the alerts and one row per punch, padded to a full day", async () => {
@@ -242,7 +247,7 @@ describe("day screen", () => {
     expect(await screen.findByText("Tela Período")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Dia 14 salvo");
 
-    const writes = (await outbox.items("user-a")).map(({ write }) => write);
+    const writes = punchWrites(await outbox.items("user-a"));
     expect(writes).toHaveLength(3);
     const [removed, edited, added] = writes;
     expect(removed).toMatchObject({ id: saved[1]!.id, punchedAt: fromLocal(DAY, "11:00") });
@@ -276,7 +281,7 @@ describe("day screen", () => {
     await user.click(screen.getByRole("button", { name: "Salvar dia" }));
 
     expect(await screen.findByText("Tela Período")).toBeInTheDocument();
-    const writes = (await outbox.items("user-a")).map(({ write }) => [
+    const writes = punchWrites(await outbox.items("user-a")).map((write) => [
       write.id,
       toLocalTime(write.punchedAt),
     ]);
@@ -442,7 +447,7 @@ describe("day screen", () => {
     await user.click(screen.getByRole("button", { name: "Salvar dia" }));
 
     expect(await screen.findByText("Tela Período")).toBeInTheDocument();
-    const writes = (await outbox.items("user-a")).map(({ write }) => [
+    const writes = punchWrites(await outbox.items("user-a")).map((write) => [
       write.id,
       toLocalTime(write.punchedAt),
     ]);
@@ -470,5 +475,99 @@ describe("day screen", () => {
     await act(() => outbox.enqueue("user-a", { ...later!, deletedAt: null }));
 
     expect(within(card).queryByDisplayValue("20:00")).not.toBeInTheDocument();
+  });
+});
+
+describe("day type", () => {
+  const dayType = () => screen.findByRole("group", { name: "Tipo do dia" });
+
+  it("starts as Normal and offers the types without Feriado", async () => {
+    renderDay(day(DAY, "09:00", "12:00", "13:00", "18:00"));
+    const chips = within(await dayType()).getAllByRole("button");
+
+    expect(chips.map((chip) => chip.textContent)).toEqual([
+      "Normal",
+      "Falta",
+      "Atestado",
+      "Férias",
+      "Folga",
+      "Abono",
+    ]);
+    expect(within(await dayType()).getByRole("button", { name: "Normal" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(await punchesCard()).not.toHaveClass("opacity-50");
+  });
+
+  it("dims the punches, notes the absence and stops expecting a journey", async () => {
+    const { user } = renderDay(day(DAY, "09:00", "12:00", "13:00", "18:00"));
+    const balance = await screen.findByRole("group", { name: "Saldo do dia" });
+    expect(balance).toHaveTextContent("±0h00");
+
+    await user.click(within(await dayType()).getByRole("button", { name: "Falta" }));
+
+    expect(screen.getByText("Falta sem abono desconta o dia e o DSR da semana.")).toBeVisible();
+    expect(await punchesCard()).toHaveClass("opacity-50");
+    // Sem jornada esperada, as batidas contam inteiras, sem tolerância.
+    expect(balance).toHaveTextContent("+8h00");
+
+    await user.click(within(await dayType()).getByRole("button", { name: "Atestado" }));
+
+    expect(screen.getByText("Dia abonado: não conta jornada.")).toBeVisible();
+    expect(screen.queryByText(/Falta sem abono/)).not.toBeInTheDocument();
+  });
+
+  it("saves the type through the outbox, alone when the punches did not change", async () => {
+    const { user, outbox } = renderDay([]);
+
+    await user.click(within(await dayType()).getByRole("button", { name: "Atestado" }));
+    await user.click(screen.getByRole("button", { name: "Salvar dia" }));
+
+    expect(await screen.findByText("Tela Período")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Dia 14 salvo");
+    const items = await outbox.items("user-a");
+    expect(punchWrites(items)).toEqual([]);
+    expect(markWrites(items)).toEqual([
+      { date: DAY, type: "atestado", note: null, updatedAt: expect.any(Date), deletedAt: null },
+    ]);
+  });
+
+  it("opens with the saved type and goes back to Normal with a soft delete", async () => {
+    const saved = { date: DAY, type: "ferias" as const, note: "Praia", updatedAt: new Date(0) };
+    const { user, outbox } = renderDay([], { serverOf: (rows) => fakePunches(rows, [saved]) });
+    const chips = await dayType();
+    expect(await within(chips).findByRole("button", { name: "Férias" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(within(chips).getByRole("button", { name: "Normal" }));
+    await user.click(screen.getByRole("button", { name: "Salvar dia" }));
+
+    expect(await screen.findByText("Tela Período")).toBeInTheDocument();
+    expect(markWrites(await outbox.items("user-a"))).toEqual([
+      {
+        date: DAY,
+        type: "ferias",
+        note: "Praia",
+        updatedAt: expect.any(Date),
+        deletedAt: expect.any(Date),
+      },
+    ]);
+  });
+
+  it("saves nothing for a type left as it was", async () => {
+    const saved = { date: DAY, type: "abono" as const, note: null, updatedAt: new Date(0) };
+    const { user, outbox } = renderDay([], { serverOf: (rows) => fakePunches(rows, [saved]) });
+    const chips = await dayType();
+    await within(chips).findByRole("button", { name: "Abono", pressed: true });
+
+    await user.click(within(chips).getByRole("button", { name: "Falta" }));
+    await user.click(within(chips).getByRole("button", { name: "Abono" }));
+    await user.click(screen.getByRole("button", { name: "Salvar dia" }));
+
+    expect(await screen.findByText("Tela Período")).toBeInTheDocument();
+    expect(await outbox.items("user-a")).toEqual([]);
   });
 });

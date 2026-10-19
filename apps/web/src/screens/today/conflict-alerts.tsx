@@ -2,7 +2,7 @@ import { type LocalDate, toLocalDate, toLocalTime } from "@chimponto/domain";
 import { TriangleAlert } from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
-import type { OutboxItem } from "@/punches/outbox";
+import type { QueuedPunch } from "@/punches/outbox";
 import { type Punch, punchOf } from "@/punches/punches";
 
 /** "das 14:28" hoje; "de 15/10 às 14:28" em outro dia. */
@@ -25,10 +25,10 @@ export function ConflictAlerts({
   onChangeTime,
   onDiscard,
 }: {
-  conflicts: OutboxItem[];
+  conflicts: QueuedPunch[];
   today: LocalDate;
   onChangeTime: (punch: Punch) => void;
-  onDiscard: (item: OutboxItem) => void;
+  onDiscard: (item: QueuedPunch) => void;
 }) {
   return conflicts.map((item) => (
     <ConflictAlert
@@ -47,10 +47,10 @@ function ConflictAlert({
   onChangeTime,
   onDiscard,
 }: {
-  item: OutboxItem;
+  item: QueuedPunch;
   today: LocalDate;
   onChangeTime: (punch: Punch) => void;
-  onDiscard: (item: OutboxItem) => void;
+  onDiscard: (item: QueuedPunch) => void;
 }) {
   const titleId = useId();
   const punch = punchOf(item.write);

@@ -1,5 +1,12 @@
 import type { CompanyRules } from "./company-rules";
-import { type DayRules, type DayStatus, type DaySummary, summarizeDay } from "./day-summary";
+import {
+  type DayMark,
+  type DayMarkType,
+  type DayRules,
+  type DayStatus,
+  type DaySummary,
+  summarizeDay,
+} from "./day-summary";
 import { addDays, type LocalDate, toLocalDate, weekdayOf } from "./local-time";
 import type { Period } from "./period";
 import type { DayPunch } from "./punches";
@@ -12,6 +19,7 @@ export type PeriodDayStatus = DayStatus | "future";
 export type PeriodDay = {
   date: LocalDate;
   status: PeriodDayStatus;
+  mark: DayMarkType | null;
   summary: DaySummary;
   punchCount: number;
   /** Dia passado `pending` ou `incomplete`: o que falta resolver. Hoje e os futuros, nunca. */
@@ -31,6 +39,8 @@ export type PeriodSummary = {
   /** Dias passados `pending` e `incomplete`; hoje e os futuros não entram. */
   pendingDays: number;
   incompleteDays: number;
+  /** Dias marcados como `falta` até hoje: só contados, sem débito (o desconto fica para o salário). */
+  absenceDays: number;
 };
 
 function overtimeKindOf(date: LocalDate): OvertimeKind {
@@ -40,14 +50,16 @@ function overtimeKindOf(date: LocalDate): OvertimeKind {
 
 export type PeriodSummaryRules = DayRules & Pick<CompanyRules, "compensateWithinPeriod">;
 
-/** Resumo do período com as batidas recebidas (as de fora dele são ignoradas). */
+/** Resumo do período com as batidas e marcações recebidas (as de fora dele são ignoradas). */
 export function summarizePeriod(
   punches: DayPunch[],
   period: Period,
   rules: PeriodSummaryRules,
   now: Date,
+  marks: DayMark[] = [],
 ): PeriodSummary {
   const today = toLocalDate(now);
+  const markOf = new Map(marks.map((m) => [m.date, m.type]));
   const byDate = new Map<LocalDate, DayPunch[]>();
   for (const punch of punches) {
     const date = toLocalDate(punch.punchedAt);
@@ -57,10 +69,11 @@ export function summarizePeriod(
   const days: PeriodDay[] = [];
   for (let date = period.start; date <= period.end; date = addDays(date, 1)) {
     const dayPunches = byDate.get(date) ?? [];
-    const summary = summarizeDay(dayPunches, date, rules, now);
+    const mark = markOf.get(date) ?? null;
+    const summary = summarizeDay(dayPunches, date, rules, now, mark);
     const status = date > today ? "future" : summary.status;
     const unresolved = date < today && (status === "pending" || status === "incomplete");
-    days.push({ date, status, summary, punchCount: dayPunches.length, unresolved });
+    days.push({ date, status, mark, summary, punchCount: dayPunches.length, unresolved });
   }
 
   const closed = days.flatMap(({ date, status, summary }) =>
@@ -98,5 +111,6 @@ export function summarizePeriod(
     deficitMinutes,
     pendingDays: unresolved.filter((d) => d.status === "pending").length,
     incompleteDays: unresolved.filter((d) => d.status === "incomplete").length,
+    absenceDays: days.filter((d) => d.mark === "falta" && d.status !== "future").length,
   };
 }

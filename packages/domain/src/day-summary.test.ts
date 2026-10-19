@@ -166,6 +166,28 @@ describe("summarizeDay, pending", () => {
   });
 });
 
+describe("summarizeDay, day marks", () => {
+  const THURSDAY = "2026-10-15";
+
+  it.each(["atestado", "ferias", "folga_compensada", "abono", "falta"] as const)(
+    "%s zeroes the expected journey: a past workday without punches is off, not pending",
+    (mark) => {
+      const s = summarizeDay([], THURSDAY, RULES, at(FRIDAY, "10:00"), mark);
+      expect(s).toMatchObject({ status: "off", expectedMinutes: 0, workedMinutes: 0 });
+    },
+  );
+
+  it("keeps counting punches on a marked day, without tolerance", () => {
+    const punches = day(THURSDAY, "09:00", "09:08");
+    expect(summarizeDay(punches, THURSDAY, RULES, at(FRIDAY, "10:00"), "atestado")).toMatchObject({
+      status: "complete",
+      workedMinutes: 8,
+      expectedMinutes: 0,
+      balance: 8,
+    });
+  });
+});
+
 describe("summarizeDay, next punch", () => {
   it("expects the lunch return one expected lunch after the lunch out", () => {
     // docs/02 §7: saída do almoço 13:28 → volta 14:28.

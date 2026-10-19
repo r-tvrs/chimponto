@@ -1,5 +1,6 @@
 import {
   type CompanyRules,
+  type DayMarkType,
   type DayPunch,
   type DraftPunch,
   formatDayMonth,
@@ -25,10 +26,19 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/use-toast";
 import { useNow } from "@/lib/use-now";
 import { useOnline } from "@/lib/use-online";
-import { type Punch, type PunchWrite, usePunchesBetween, useWritePunch } from "@/punches/punches";
+import {
+  type Punch,
+  type PunchWrite,
+  type SavedDayMark,
+  useDayMarksBetween,
+  usePunchesBetween,
+  useWriteDayMark,
+  useWritePunch,
+} from "@/punches/punches";
 import { DayAlerts } from "./day/day-alerts";
 import { DayPunchesCard, type DraftRowValue } from "./day/day-punches-card";
 import { DayTiles } from "./day/day-tiles";
+import { DayTypeChips } from "./day/day-type-chips";
 
 const OFFLINE_TOAST = "Salvo no aparelho. Sobe quando o sinal voltar.";
 const SAVE_FAILED_TOAST = "Não deu para salvar o dia. Tente de novo.";
@@ -53,7 +63,9 @@ function DayContent({ date, rules, now }: { date: LocalDate; rules: CompanyRules
   const period = periodContaining(date, rules);
   // Pela consulta do Período (mesmo cache): sem conexão, o Dia mostra as batidas que o Período mostrou.
   const punches = usePunchesBetween(period.start, period.end);
-  const saved = punches.data?.filter((p) => toLocalDate(p.punchedAt) === date);
+  const marks = useDayMarksBetween(period.start, period.end);
+  const saved = marks.data && punches.data?.filter((p) => toLocalDate(p.punchedAt) === date);
+  const savedMark = marks.data?.find((mark) => mark.date === date) ?? null;
 
   return (
     <>
@@ -79,17 +91,17 @@ function DayContent({ date, rules, now }: { date: LocalDate; rules: CompanyRules
       </header>
 
       {/* Com as batidas em mãos, uma releitura que falha não tira o editor (nem o rascunho). */}
-      {punches.queueOnly ? (
+      {punches.queueOnly || marks.queueOnly ? (
         <OfflineDay />
       ) : saved ? (
-        <DayEditor date={date} rules={rules} now={now} saved={saved} />
+        <DayEditor date={date} rules={rules} now={now} saved={saved} savedMark={savedMark} />
       ) : (
-        punches.isError && (
+        (punches.isError || marks.isError) && (
           <ErrorState
             inShell
             title="Não deu para abrir o dia"
             message="Confira a conexão e tente de novo."
-            onRetry={() => void punches.refetch()}
+            onRetry={() => void Promise.all([punches.refetch(), marks.refetch()])}
           />
         )
       )}
@@ -113,17 +125,21 @@ function OfflineDay() {
   );
 }
 
-/** O rascunho do dia: começa com as batidas salvas e só vai para a outbox em "Salvar dia". */
+/**
+ * O rascunho do dia: começa com as batidas e o tipo salvos e só vai para a outbox em "Salvar dia".
+ */
 function DayEditor({
   date,
   rules,
   now,
   saved,
+  savedMark,
 }: {
   date: LocalDate;
   rules: CompanyRules;
   now: Date;
   saved: Punch[];
+  savedMark: SavedDayMark | null;
 }) {
   // Até a primeira edição, o rascunho acompanha as batidas salvas (uma da fila pode estar subindo).
   const savedKey = saved.map((p) => `${p.id}@${p.punchedAt.getTime()}`).join();
@@ -138,8 +154,12 @@ function DayEditor({
       rows: change(current?.rows ?? pristine),
       base: current?.base ?? saved,
     }));
+  // `undefined` até o usuário tocar num chip: até lá, vale o tipo salvo.
+  const [chosenType, setChosenType] = useState<DayMarkType | null>();
+  const markType = chosenType === undefined ? (savedMark?.type ?? null) : chosenType;
   const [saving, setSaving] = useState(false);
   const writePunch = useWritePunch();
+  const writeDayMark = useWriteDayMark();
   const toast = useToast();
   const online = useOnline();
   const navigate = useNavigate();
@@ -149,7 +169,7 @@ function DayEditor({
   const filled = draft.flatMap((row) =>
     row.punchedAt ? [{ ...row, punchedAt: row.punchedAt }] : [],
   );
-  const summary = summarizeDay(filled, date, rules, now);
+  const summary = summarizeDay(filled, date, rules, now, markType);
   const duplicate = labeled.some((row) => row.duplicate);
 
   /**
@@ -160,9 +180,24 @@ function DayEditor({
   async function save() {
     if (duplicate) return;
     setSaving(true);
+    const savedAt = new Date();
     try {
-      for (const write of writesOf(edited?.base ?? saved, filled, new Date())) {
+      for (const write of writesOf(edited?.base ?? saved, filled, savedAt)) {
         await writePunch(write);
+      }
+      if (markType !== (savedMark?.type ?? null)) {
+        // Voltar a Normal é a exclusão lógica da marcação salva.
+        await writeDayMark(
+          markType
+            ? {
+                date,
+                type: markType,
+                note: savedMark?.note ?? null,
+                updatedAt: savedAt,
+                deletedAt: null,
+              }
+            : { ...savedMark!, updatedAt: savedAt, deletedAt: savedAt },
+        );
       }
     } catch {
       setSaving(false);
@@ -181,7 +216,9 @@ function DayEditor({
         punchCount={filled.length}
         expectedLunchMinutes={rules.expectedLunchMinutes}
       />
+      <DayTypeChips value={markType} onChange={setChosenType} />
       <DayPunchesCard
+        dimmed={markType !== null}
         rows={rows.map((row, i) => ({ ...row, ...labeled[i]! }))}
         onChange={(id, time) =>
           setRows((current) => current.map((row) => (row.id === id ? { ...row, time } : row)))

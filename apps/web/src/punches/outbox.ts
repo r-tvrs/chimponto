@@ -1,19 +1,24 @@
 import { createContext, useContext } from "react";
 import type { OfflineDb } from "@/lib/offline-db";
-import type { PunchWrite } from "./punches";
+import type { DayMarkWrite, PunchWrite } from "./punches";
+
+/** Escrita ainda não aceita pelo servidor (D3): de batida ou de marcação do dia, na mesma fila. */
+export type OutboxItem = QueuedPunch | QueuedDayMark;
 
 /**
- * Escrita de batida ainda não aceita pelo servidor (D3). `conflict`: o servidor respondeu
- * `duplicate_minute` ou recusou a escrita (`rejected`); fica parada até o usuário mudar a hora
- * (só no `duplicate_minute`) ou descartar.
+ * Escrita de batida. `conflict`: o servidor respondeu `duplicate_minute` ou recusou a escrita
+ * (`rejected`); fica parada até o usuário mudar a hora (só no `duplicate_minute`) ou descartar.
  */
-export type OutboxItem = {
+export type QueuedPunch = {
   seq: number;
   userId: string;
   punchId: string;
   write: PunchWrite;
   conflict: OutboxConflict | null;
 };
+
+/** Escrita da marcação do dia; não tem conflito (o dia é a chave, e vale a mais nova). */
+export type QueuedDayMark = { seq: number; userId: string; mark: DayMarkWrite; conflict: null };
 
 export type OutboxConflict = "duplicate_minute" | "rejected";
 
@@ -23,6 +28,7 @@ export type Outbox = {
    * a mesma sequência que o aparelho; só um conflito dela sai, porque a escrita nova o resolve.
    */
   enqueue: (userId: string, write: PunchWrite) => Promise<void>;
+  enqueueMark: (userId: string, mark: DayMarkWrite) => Promise<void>;
   /** Fila do usuário, em ordem, com os conflitos. */
   items: (userId: string) => Promise<OutboxItem[]>;
   remove: (seqs: number[]) => Promise<void>;
@@ -31,7 +37,7 @@ export type Outbox = {
    * enquanto esta estava no ar). Numa transação só, para uma edição não cair entre a checagem e a
    * marcação.
    */
-  markConflictUnlessSuperseded: (item: OutboxItem, conflict: OutboxConflict) => Promise<void>;
+  markConflictUnlessSuperseded: (item: QueuedPunch, conflict: OutboxConflict) => Promise<void>;
 };
 
 export function createOutbox(db: OfflineDb): Outbox {
@@ -44,6 +50,9 @@ export function createOutbox(db: OfflineDb): Outbox {
           .delete();
         await db.outbox.add({ userId, punchId: write.id, write, conflict: null });
       }),
+    enqueueMark: async (userId, mark) => {
+      await db.outbox.add({ userId, mark, conflict: null });
+    },
     // Sem `async`: o `useLiveQuery` acompanha a leitura do Dexie feita aqui dentro.
     items: (userId) => db.outbox.where({ userId }).sortBy("seq"),
     remove: (seqs) => db.outbox.bulkDelete(seqs),

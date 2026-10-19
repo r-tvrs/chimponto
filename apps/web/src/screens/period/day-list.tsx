@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Saldo } from "@/components/saldo";
 import { Badge } from "@/components/ui/badge";
+import { DAY_MARK_LABELS } from "@/punches/day-mark-labels";
 import { cn } from "@/lib/utils";
 
 /**
@@ -117,15 +118,15 @@ function workedText(day: PeriodDay, isToday: boolean): string {
     case "pending":
       return "—";
     case "off":
-      return "sem jornada";
+      return day.mark ? "—" : "sem jornada";
     case "complete":
       return formatDuration(day.summary.workedMinutes);
   }
 }
 
-type DayBadge = { variant: "today" | "pending" | "warning"; text: string };
+type DayBadge = { variant: "today" | "pending" | "warning" | "negative" | "neutral"; text: string };
 
-/** Um badge por dia, do mais importante: hoje, sem registro, incompleto, almoço curto. */
+/** Um badge por dia, do mais importante: hoje, sem registro, incompleto, tipo do dia, almoço curto. */
 function badgeOf(day: PeriodDay, isToday: boolean): DayBadge | null {
   if (isToday) return { variant: "today", text: "Hoje" };
   if (day.status === "pending") return { variant: "pending", text: "Sem registro" };
@@ -133,6 +134,12 @@ function badgeOf(day: PeriodDay, isToday: boolean): DayBadge | null {
   if (kinds.includes("odd_punches"))
     return { variant: "warning", text: formatPunchCount(day.punchCount) };
   if (kinds.includes("missing_lunch")) return { variant: "warning", text: "Sem almoço" };
+  if (day.mark) {
+    return {
+      variant: day.mark === "falta" ? "negative" : "neutral",
+      text: DAY_MARK_LABELS[day.mark],
+    };
+  }
   if (kinds.includes("short_lunch")) return { variant: "warning", text: "Almoço curto" };
   return null;
 }

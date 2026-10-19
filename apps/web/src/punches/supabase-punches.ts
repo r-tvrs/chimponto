@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { Punch, Punches } from "./punches";
+import type { Punch, Punches, SavedDayMark } from "./punches";
 
 // A RLS já limita às batidas do usuário da sessão.
 const livePunches = () =>
@@ -51,11 +51,40 @@ export const supabasePunches: Punches = {
       // null explícito: sem a chave, o PostgREST não acha a função.
       deleted_at: (write.deletedAt?.toISOString() ?? null) as string,
     });
-    if (!error) return data;
-    // 0 é falha de rede; 401 (sessão expirada), 408, 429 e 5xx passam sozinhos. O resto (ex.:
-    // 42501 da RLS, 400 de argumento inválido) o servidor recusaria de novo.
-    return status === 0 || [401, 408, 429].includes(status) || status >= 500
-      ? "failed"
-      : "rejected";
+    return error ? failureOf(status) : data;
+  },
+
+  async marksBetween(start, end) {
+    const { data, error } = await supabase
+      .from("day_marks")
+      .select("date, type, note, updated_at")
+      .is("deleted_at", null)
+      .gte("date", start)
+      .lte("date", end);
+    if (error) throw error;
+    return data.map((row) => ({
+      date: row.date,
+      // O check da tabela garante os tipos de DAY_MARK_TYPES.
+      type: row.type as SavedDayMark["type"],
+      note: row.note,
+      updatedAt: new Date(row.updated_at),
+    }));
+  },
+
+  async upsertMark(write) {
+    const { data, error, status } = await supabase.rpc("upsert_day_mark", {
+      date: write.date,
+      type: write.type,
+      note: write.note as string,
+      updated_at: write.updatedAt.toISOString(),
+      deleted_at: (write.deletedAt?.toISOString() ?? null) as string,
+    });
+    return error ? failureOf(status) : data;
   },
 };
+
+// 0 é falha de rede; 401 (sessão expirada), 408, 429 e 5xx passam sozinhos. O resto (ex.: 42501 da
+// RLS, 400 de argumento inválido) o servidor recusaria de novo.
+function failureOf(status: number): "failed" | "rejected" {
+  return status === 0 || [401, 408, 429].includes(status) || status >= 500 ? "failed" : "rejected";
+}

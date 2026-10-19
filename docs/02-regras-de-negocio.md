@@ -62,13 +62,16 @@ O rótulo não é persistido; é sempre derivado da ordem cronológica, então b
    - dia útil sem marcação especial → `dailyMinutes`
    - sábado, domingo, feriado → 0
    - dia com tipo `atestado`, `ferias`, `folga_compensada`, `abono` → 0
-   - dia com tipo `falta` → ver §8.4
+   - dia com tipo `falta` → 0 para horas (§3.1); o desconto é do salário (§8.4)
 5. `rawBalance = workedMinutes − expectedMinutes`.
 6. Aplicar tolerância (§4) → `balance`.
 
 ### 3.1 Tipos de dia (marcação manual)
 
 `falta` · `atestado` · `ferias` · `folga_compensada` · `abono`
+
+- **Batidas em dia marcado:** continuam somando `workedMinutes`. Como `expectedMinutes = 0`, a tolerância (§4) não se aplica e o saldo positivo vira hora extra do tipo do dia da semana (§6). Dia marcado sem batidas não tem jornada nem fica `pending`. Vale também para `falta`: batidas num dia de falta viram hora extra.
+- **Falta na v1:** `expectedMinutes = 0` para horas, sem `deficitMinutes`; o período só conta os dias de falta até hoje (`absenceDays`). O desconto do dia e do DSR (§8.4) entra com o salário (v1.2).
 
 ### 3.2 Dia útil passado sem batidas e sem tipo
 

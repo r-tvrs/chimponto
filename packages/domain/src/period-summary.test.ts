@@ -3,6 +3,7 @@ import { type CompanyRules, companyRulesSchema } from "./company-rules";
 import { fromLocal } from "./local-time";
 import { periodContaining } from "./period";
 import { summarizePeriod } from "./period-summary";
+import type { DayMark } from "./day-summary";
 
 const RULES = companyRulesSchema.parse({});
 // 20/09/2026 (dom) a 19/10/2026 (seg).
@@ -22,8 +23,13 @@ function workday(date: string, balance: number) {
   return day(date, "09:00", "12:00", "13:00", hhmm);
 }
 
-function summary(punches: ReturnType<typeof day>, rules: Partial<CompanyRules> = {}, now = NOW) {
-  return summarizePeriod(punches, PERIOD, companyRulesSchema.parse(rules), now);
+function summary(
+  punches: ReturnType<typeof day>,
+  rules: Partial<CompanyRules> = {},
+  now = NOW,
+  marks: DayMark[] = [],
+) {
+  return summarizePeriod(punches, PERIOD, companyRulesSchema.parse(rules), now, marks);
 }
 
 const statusOf = (s: ReturnType<typeof summary>, date: string) =>
@@ -129,6 +135,36 @@ describe("summarizePeriod, compensating within the period (compensateWithinPerio
       overtimeMinutes: { weekday: 0, saturday: 0, sundayHoliday: 120 },
       deficitMinutes: 57,
       netBalance: 63,
+    });
+  });
+});
+
+describe("summarizePeriod, day marks", () => {
+  it("counts absences without deficit and gives each day its mark", () => {
+    const marks: DayMark[] = [
+      { date: "2026-10-13", type: "falta" },
+      { date: "2026-10-14", type: "atestado" },
+      { date: "2026-10-19", type: "falta" }, // futuro
+    ];
+    const s = summary(workday("2026-10-15", -30), {}, NOW, marks);
+
+    expect(s).toMatchObject({ deficitMinutes: 30, absenceDays: 1 });
+    expect(s.days.find((d) => d.date === "2026-10-13")).toMatchObject({
+      mark: "falta",
+      status: "off",
+      unresolved: false,
+    });
+    expect(s.days.find((d) => d.date === "2026-10-14")?.mark).toBe("atestado");
+    expect(s.days.find((d) => d.date === "2026-10-15")?.mark).toBeNull();
+    // Dias úteis passados sem batidas: 21/09–09/10 (15) + 12/10.
+    expect(s.pendingDays).toBe(16);
+  });
+
+  it("turns punches on a marked weekday into weekday overtime", () => {
+    const marks: DayMark[] = [{ date: "2026-10-14", type: "ferias" }];
+    expect(summary(day("2026-10-14", "09:00", "11:00"), {}, NOW, marks)).toMatchObject({
+      overtimeMinutes: { weekday: 120, saturday: 0, sundayHoliday: 0 },
+      deficitMinutes: 0,
     });
   });
 });

@@ -11,7 +11,7 @@ import { createPunchSync, type PunchSync as Sync } from "./sync";
  */
 export function PunchSync() {
   const outbox = useOutbox();
-  const { upsert } = usePunches();
+  const { upsert, upsertMark } = usePunches();
   const user = useSignedInUser();
   const refresh = useRefreshPunches();
   const sync = useRef<Sync | null>(null);
@@ -21,6 +21,7 @@ export function PunchSync() {
     const created = createPunchSync({
       outbox,
       upsert,
+      upsertMark,
       userId: user.id,
       isOnline: () => onlineManager.isOnline(),
       onSynced: refresh,
@@ -34,7 +35,7 @@ export function PunchSync() {
       unsubscribe();
       created.stop();
     };
-  }, [outbox, upsert, user.id, refresh]);
+  }, [outbox, upsert, upsertMark, user.id, refresh]);
 
   // Cada escrita nova entra com um seq novo no fim da fila.
   useEffect(() => {

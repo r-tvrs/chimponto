@@ -78,6 +78,34 @@ export type Database = {
           },
         ];
       };
+      day_marks: {
+        Row: {
+          date: string;
+          deleted_at: string | null;
+          note: string | null;
+          type: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          date: string;
+          deleted_at?: string | null;
+          note?: string | null;
+          type: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Update: {
+          date?: string;
+          deleted_at?: string | null;
+          note?: string | null;
+          type?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           display_name: string | null;
@@ -182,6 +210,10 @@ export type Database = {
     };
     Functions: {
       create_company: { Args: { name: string; rules: Json }; Returns: string };
+      upsert_day_mark: {
+        Args: { date: string; deleted_at: string; note: string; type: string; updated_at: string };
+        Returns: Database["public"]["Enums"]["upsert_day_mark_result"];
+      };
       upsert_punch: {
         Args: {
           deleted_at: string;
@@ -195,6 +227,7 @@ export type Database = {
       };
     };
     Enums: {
+      upsert_day_mark_result: "applied" | "stale";
       upsert_punch_result: "applied" | "stale" | "duplicate_minute";
     };
     CompositeTypes: {
@@ -310,6 +343,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      upsert_day_mark_result: ["applied", "stale"],
       upsert_punch_result: ["applied", "stale", "duplicate_minute"],
     },
   },

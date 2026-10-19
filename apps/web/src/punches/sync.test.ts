@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OfflineDb } from "@/lib/offline-db";
 import { createOutbox } from "./outbox";
-import type { PunchWrite, UpsertPunchResult } from "./punches";
+import type { DayMarkWrite, Punches, PunchWrite, UpsertPunchResult } from "./punches";
 import { createPunchSync, retryDelayMs } from "./sync";
 
 const USER = "user-a";
@@ -43,7 +43,8 @@ function fakeServer(...results: UpsertPunchResult[]) {
     if (result === "applied") rows.set(w.id, w);
     return result;
   });
-  return { rows, upsert };
+  const upsertMark = vi.fn<Punches["upsertMark"]>(async () => "applied");
+  return { rows, upsert, upsertMark };
 }
 
 function startSync(
@@ -55,6 +56,7 @@ function startSync(
   const sync = createPunchSync({
     outbox,
     upsert: server.upsert,
+    upsertMark: server.upsertMark,
     userId: USER,
     isOnline: options.online ?? (() => true),
     onSynced,
@@ -76,6 +78,51 @@ describe("punch sync", () => {
     expect(server.upsert.mock.calls.map(([w]) => w.id)).toEqual(["a", "b"]);
     expect(await outbox.items(USER)).toEqual([]);
     expect(onSynced).toHaveBeenCalledOnce();
+  });
+
+  it("sends the day marks through the same queue, in order with the punches", async () => {
+    const outbox = freshOutbox();
+    const mark: DayMarkWrite = {
+      date: "2026-10-14",
+      type: "atestado",
+      note: null,
+      updatedAt: new Date("2026-10-16T12:00:00Z"),
+      deletedAt: null,
+    };
+    await outbox.enqueue(USER, write("a"));
+    await outbox.enqueueMark(USER, mark);
+    const server = fakeServer();
+    const order: string[] = [];
+    server.upsert.mockImplementation(async (w) => (order.push(w.id), "applied"));
+    server.upsertMark.mockImplementation(async (m) => (order.push(m.date), "applied"));
+    const { sync } = startSync(outbox, server);
+
+    await sync.run();
+
+    expect(order).toEqual(["a", "2026-10-14"]);
+    expect(server.upsertMark).toHaveBeenCalledExactlyOnceWith(mark);
+    expect(await outbox.items(USER)).toEqual([]);
+  });
+
+  it("drops a day mark the server rejects, without turning it into a conflict", async () => {
+    const outbox = freshOutbox();
+    await outbox.enqueueMark(USER, {
+      date: "2026-10-14",
+      type: "atestado",
+      note: null,
+      updatedAt: new Date("2026-10-16T12:00:00Z"),
+      deletedAt: null,
+    });
+    await outbox.enqueue(USER, write("a"));
+    const server = fakeServer("rejected");
+    server.upsertMark.mockResolvedValueOnce("rejected");
+    const { sync } = startSync(outbox, server);
+
+    await sync.run();
+
+    expect(await outbox.items(USER)).toEqual([
+      expect.objectContaining({ write: write("a"), conflict: "rejected" }),
+    ]);
   });
 
   it("sends every write of a punch edited while queued, so a minute it freed can be reused", async () => {

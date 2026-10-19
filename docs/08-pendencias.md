@@ -82,7 +82,7 @@ Vindas do #8 (tela Dia). Comportamento atual mantido até decidir.
 
 | # | Questão | Comportamento atual | Afeta |
 |---|---|---|---|
-| 15 | Observação do dia (handoff §6.6). Os critérios do #9 não citam o campo, e `day_marks.type` (`docs/04`) é obrigatório e não tem "normal": um dia Normal com observação não tem onde ser gravado sem mudar o schema | Sem o campo no #8; entra com `day_marks.note` no #9 | Tela Dia, #9, `docs/04` |
+| 15 | Observação do dia (handoff §6.6). Os critérios do #9 não citam o campo, e `day_marks.type` (`docs/04`) é obrigatório e não tem "normal": um dia Normal com observação não tem onde ser gravado sem mudar o schema | Sem o campo na tela. `day_marks.note` existe e a RPC grava; o Dia preserva a nota salva ao trocar o tipo | Tela Dia, `docs/04` |
 | 16 | Rótulos mudam enquanto o usuário digita (a linha editada pode trocar de rótulo com as outras) | Rótulo sempre pela ordem cronológica, linhas paradas na ordem da tela | Tela Dia |
 | 17 | Trocar as horas de batidas em ciclo (A vai para o minuto de B e B para o de A): a primeira edição chega ao servidor com o minuto ainda ocupado | As edições do ciclo viram conflito `duplicate_minute` na Hoje (todas: como a primeira falha, o minuto que a seguinte quer continua ocupado). Exclusões sobem antes das edições e uma cadeia de edições é ordenada (quem libera o minuto sobe antes); só o ciclo não tem ordem possível | "Salvar dia", sincronização |
 | 18 | Batida criada, movida ou excluída em outro aparelho depois da primeira edição no Dia | O rascunho para de acompanhar as salvas e continua mostrando como estavam; "Salvar dia" grava só o que o usuário mudou desde a primeira edição, sem desfazer o que veio do outro aparelho | Tela Dia |
@@ -90,6 +90,11 @@ Vindas do #8 (tela Dia). Comportamento atual mantido até decidir.
 | 20 | "Salvar dia" falha no meio (o aparelho grava parte das escritas na outbox) | Saindo pelo voltar, o que já entrou na fila sobe sozinho e o dia fica meio salvo, embora o toast tenha dito que não salvou. Salvando de novo, `base` continua o da primeira edição: as escritas que já entraram se repetem com `updatedAt` novo (linhas a mais no `punch_history`; o comentário de `save()` em `day.tsx` diz "mesmo id e valores", o que não é exato), e desfazer no rascunho algo que já entrou na fila não gera escrita (ex.: A movida de 09:00 para 09:10 entra, a falha vem depois; voltar A para 09:00 e salvar deixa A às 09:10 no servidor). Correção prevista: aplicar a `base` cada escrita que entrou na fila | Tela Dia |
 | 21 | Período sem conexão num período que o aparelho nunca baixou | Mostra os dias como vazios ("Sem registro"), pela regra do D3; o Dia desses dias espera a conexão | Período |
 | 22 | Releitura do Período que falha com o resumo já na tela | Troca o resumo por "Não deu para abrir o período" (o Dia mantém o editor; ver `docs/07`) | Período |
+| 23 | Marcação do dia recusada pelo servidor (`rejected`: RLS, argumento inválido) | Sai da fila sem aviso; a tela volta a mostrar o tipo salvo no servidor. Correção prevista: conflito visível na Hoje, como nas batidas | Sincronização |
+| 24 | Tipo do dia mudado em outro aparelho com o Dia aberto | "Salvar dia" compara o tipo escolhido com o salvo no momento de salvar (não no da primeira edição, como as batidas); se forem iguais, não grava | Tela Dia |
+| 25 | Hoje não lê `day_marks` | A Hoje calcula o dia sem marcação. O Dia só abre dias passados, então a marcação de hoje só chega por outro caminho (não existe na v1) | Hoje |
+| 26 | Contagem de faltas do período | `summarizePeriod` devolve `absenceDays`, mas nenhuma tela mostra; cada dia da lista mostra o badge "Falta" | Período |
+| 27 | Cobertura de testes do #9 | O pgTAP "B marca a mesma data sem tocar na de A" não relê a linha de A (o isolamento vem do `auth.uid()` da RPC); nenhum teste salva uma marcação sem conexão de ponta a ponta (fila, outbox e mescla testadas em separado) | Testes |
 
 Refatorações apontadas na review do #8 (sem efeito no comportamento):
 
@@ -118,7 +123,20 @@ Refatorações apontadas na review do #8 (sem efeito no comportamento):
 - `day.test.tsx` dispara as releituras com `queryClient.invalidateQueries()`; o `onlineManager.setOnline` (a releitura da reconexão) é um gatilho que o usuário vê.
 - `day/day-punches-card.tsx` monta ids de dois jeitos: `${row.id}-error` para o erro e `useId()` para o título.
 
-`summarizeDay` ainda não considera feriados nem tipos de dia: `expectedMinutes` vem só de `workdays` e `dailyMinutes`. Chegam com o #9 (tipo do dia) e o #11 (feriados).
+`summarizeDay` ainda não considera feriados: `expectedMinutes` vem de `workdays`, `dailyMinutes` e do tipo do dia. Chegam com o #11.
+
+Vindas do #9 (tipo do dia). Comportamento atual mantido até decidir.
+
+- `Punches` (porta de dados das batidas) ganhou `marksBetween` e `upsertMark`; o nome não cobre mais o que expõe. `useQueuedPunches` e `createPunchSync` idem: a fila leva marcações.
+- `QueuedDayMark` e `QueuedPunch` se distinguem por `"mark" in item` / `"write" in item`, sem campo discriminante; os itens antigos da outbox não têm `kind`, e acrescentar um pede migração do Dexie.
+- `useDayMarksBetween` repete de `usePunchesBetween` a regra da consulta pausada (`queueOnly`) e a mescla com a fila.
+- `period.test.tsx` e `day.test.tsx` ganharam o mesmo `marksBetween` no fake (ver o item dos fakes acima).
+- A regra "falta ou abonado" escrita em três lugares: `day-type-chips.tsx` (`NOTES[value === "falta" ? …]`), `period/day-list.tsx` (variante do badge) e `absenceDays` no domínio. Candidato a `isAbsence(mark)` no domínio.
+- `DayMarkType | null` com `null` = "Normal": espalha `?? null` e `?? "normal"`, e deixa `chosenType` em `day.tsx` com três estados (`undefined`/`null`/tipo).
+- `save()` em `day.tsx` monta o `DayMarkWrite` à mão nos dois ramos e depende do `savedMark!`; candidato a `markWriteOf(savedMark, type, at)` ao lado de `writesOf`.
+- `"write" in item` em `sync.ts` repete o `isPunch` exportado por `punches.ts`; `"mark" in item` em `useDayMarksBetween` idem.
+- `sync.test.ts` repete o literal de `DayMarkWrite` nos dois testes de marcação; candidato a um `mark()` ao lado de `write()`. O teste da marcação recusada não confere a chamada a `upsertMark` (coberto de forma implícita: a marcação só sai da fila depois de enviada).
+- O comentário de `createPunchSync` (`sync.ts`) diz que `rejected` vira conflito antes de abrir a exceção da marcação; a leitura fica ambígua.
 
 ## Implementação
 

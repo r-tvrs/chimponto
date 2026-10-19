@@ -9,7 +9,7 @@ import { useProfile } from "@/data/profile";
 import { useNow } from "@/lib/use-now";
 import { useOnline } from "@/lib/use-online";
 import { useOutbox } from "@/punches/outbox";
-import { type Punch, usePunchesOn, useQueuedPunches } from "@/punches/punches";
+import { conflictsOf, type Punch, usePunchesOn, useQueuedPunches } from "@/punches/punches";
 import { ConflictAlerts } from "./today/conflict-alerts";
 import { DayAlerts } from "./today/day-alerts";
 import { DayTiles } from "./today/day-tiles";
@@ -34,7 +34,7 @@ export function TodayScreen() {
   const online = useOnline();
   const outbox = useOutbox();
   const queue = useQueuedPunches() ?? [];
-  const conflicts = queue.filter((item) => item.conflict);
+  const conflicts = conflictsOf(queue);
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
 
   if (punches.isError) {

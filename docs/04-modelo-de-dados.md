@@ -122,7 +122,7 @@ unique(user_id, local_date, type). Índice `(status, send_at)`.
 | profiles | dono | dono (INSERT/UPDATE); criado por trigger no cadastro; exclusão só via `delete_account` |
 | holidays | nacional ou da própria empresa | admin da empresa |
 | punches, punch_history | dono | `punches` só via RPC `upsert_punch` (sem DELETE físico; exclusão é `deleted_at`); `punch_history` só via trigger |
-| day_marks | dono | dono |
+| day_marks | dono | só via RPC `upsert_day_mark` (sem DELETE físico; voltar a Normal é `deleted_at`) |
 | vaults, salary_profiles, payslip_actuals | dono | dono |
 | push_subscriptions | dono | dono |
 | scheduled_notifications | dono | apenas sistema |
@@ -137,7 +137,7 @@ Cada política tem teste: usuário A não lê/escreve linhas do usuário B; memb
 | `create_invite(max_uses, expires_in)` | Admin; retorna token em claro uma única vez |
 | `accept_invite(token)` | Valida hash/expiração/usos e insere membro |
 | `upsert_punch(...)` | Idempotente, LWW por `updated_at` |
-| `upsert_day_mark(...)` | Idem |
+| `upsert_day_mark(date, type, note, updated_at, deleted_at)` | Idempotente por (usuário, data), LWW por `updated_at`; devolve `applied` \| `stale` |
 | `delete_account()` | Remove todos os dados do usuário (LGPD) |
 
 ## Triggers

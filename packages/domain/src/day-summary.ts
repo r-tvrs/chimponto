@@ -16,6 +16,11 @@ export type DayRules = Pick<
   "dailyMinutes" | "expectedLunchMinutes" | "dailyToleranceMinutes" | "workdays"
 >;
 
+/** Tipo do dia marcado à mão (§3.1). Sem marcação, o dia é Normal. */
+export const DAY_MARK_TYPES = ["falta", "atestado", "ferias", "folga_compensada", "abono"] as const;
+export type DayMarkType = (typeof DAY_MARK_TYPES)[number];
+export type DayMark = { date: LocalDate; type: DayMarkType };
+
 /**
  * `in_progress`: hoje (ou adiante) com o dia ainda aberto. `incomplete`: batidas que não fecham o
  * dia (§3.2). `pending`: dia útil passado sem batidas (§3.2). `off`: sem jornada e sem batidas.
@@ -48,17 +53,22 @@ export type NextPunch =
 
 const minutesBetween = (from: Date, to: Date) => (to.getTime() - from.getTime()) / MINUTE_MS;
 
-/** Resumo do dia local `date`, com as batidas desse dia em qualquer ordem. */
+/**
+ * Resumo do dia local `date`, com as batidas desse dia em qualquer ordem. Dia marcado (`mark`) não
+ * tem jornada; as batidas nele contam, sem tolerância (§3).
+ */
 export function summarizeDay(
   punches: DayPunch[],
   date: LocalDate,
   rules: DayRules,
   now: Date,
+  mark: DayMarkType | null = null,
 ): DaySummary {
   const labeled = labelDay(punches, now);
   const times = labeled.map(({ punch }) => punch.punchedAt);
   const timeOf = (label: PunchLabel) => labeled.find((p) => p.label === label)?.punch.punchedAt;
-  const expectedMinutes = rules.workdays.includes(weekdayOf(date)) ? rules.dailyMinutes : 0;
+  const expectedMinutes =
+    !mark && rules.workdays.includes(weekdayOf(date)) ? rules.dailyMinutes : 0;
   const isPast = date < toLocalDate(now);
 
   let workedMinutes = 0;

@@ -2,6 +2,7 @@ import type { DraftRow, LocalTime } from "@chimponto/domain";
 import { Plus, Trash2 } from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { PUNCH_LABELS } from "@/punches/punch-labels";
 
 /** Linha do rascunho na tela: `time` vazio é uma linha ainda sem hora. */
@@ -10,24 +11,30 @@ export type DraftRowValue = { id: string; time: LocalTime | "" };
 /**
  * Card Batidas da tela Dia (handoff §6.4): uma linha de 56 px por batida, com o rótulo derivado
  * ao vivo, a hora editável e o botão de remover; "Adicionar batida" abre uma linha vazia no fim.
+ * `dimmed`: dia com tipo fora de Normal (§6.3); as batidas continuam editáveis.
  */
 export function DayPunchesCard({
   rows,
   onChange,
   onRemove,
   onAdd,
+  dimmed,
 }: {
   rows: (DraftRowValue & DraftRow)[];
   onChange: (id: string, time: LocalTime | "") => void;
   onRemove: (id: string) => void;
   onAdd: () => void;
+  dimmed: boolean;
 }) {
   const titleId = useId();
   return (
     <div
       role="group"
       aria-labelledby={titleId}
-      className="flex flex-col rounded-[20px] border bg-card px-3.5 py-1.5"
+      className={cn(
+        "flex flex-col rounded-[20px] border bg-card px-3.5 py-1.5",
+        dimmed && "opacity-50",
+      )}
     >
       <h2 id={titleId} className="sr-only">
         Batidas

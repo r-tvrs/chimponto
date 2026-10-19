@@ -13,15 +13,17 @@ export type PunchSync = {
 };
 
 /**
- * Drena a outbox do usuário pelo `upsert_punch`, em ordem (D3). `applied` e `stale` saem da fila
+ * Drena a outbox do usuário pelo `upsert_punch` e pelo `upsert_day_mark`, em ordem (D3). `applied` e `stale` saem da fila
  * depois de `onSynced` recarregar as leituras, para a batida não sumir da tela no meio do caminho;
  * `duplicate_minute` e `rejected` viram conflito e a fila segue, a não ser que uma escrita mais nova
  * da mesma batida esteja na fila (aí saem); toda passada com resposta do servidor recarrega as
- * leituras; `failed` (rede) para a passada e tenta de novo com backoff.
+ * leituras; `failed` (rede) para a passada e tenta de novo com backoff. Marcação do dia não tem
+ * conflito: `rejected` sai da fila (docs/08).
  */
 export function createPunchSync({
   outbox,
   upsert,
+  upsertMark,
   userId,
   isOnline,
   onSynced,
@@ -29,6 +31,7 @@ export function createPunchSync({
 }: {
   outbox: Outbox;
   upsert: Punches["upsert"];
+  upsertMark: Punches["upsertMark"];
   userId: string;
   isOnline: () => boolean;
   onSynced: () => Promise<void>;
@@ -48,14 +51,16 @@ export function createPunchSync({
     for (const item of await outbox.items(userId)) {
       if (item.conflict) continue;
       if (stopped || !isOnline()) break;
-      const result = await upsert(item.write).catch(() => "failed" as const);
+      const result = await ("mark" in item ? upsertMark(item.mark) : upsert(item.write)).catch(
+        () => "failed" as const,
+      );
       if (result === "failed") {
         failed = true;
         break;
       }
       attempt = 0;
       answered = true;
-      if (result === "duplicate_minute" || result === "rejected") {
+      if ("write" in item && (result === "duplicate_minute" || result === "rejected")) {
         await outbox.markConflictUnlessSuperseded(item, result);
       } else done.push(item.seq);
     }

@@ -1,9 +1,9 @@
-import { type LocalDate, toLocalDate } from "@chimponto/domain";
+import { type DayMarkType, type LocalDate, toLocalDate } from "@chimponto/domain";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLiveQuery } from "dexie-react-hooks";
 import { createContext, useCallback, useContext } from "react";
 import { useSignedInUser } from "@/auth/auth";
-import { type OutboxItem, useOutbox } from "./outbox";
+import { type OutboxItem, type QueuedPunch, useOutbox } from "./outbox";
 
 export type Punch = {
   id: string;
@@ -21,6 +21,17 @@ export function punchOf({ id, punchedAt, source, note, updatedAt }: PunchWrite):
   return { id, punchedAt, source, note, updatedAt };
 }
 
+/** Marcação do dia (docs/02 §3.1). Sem marcação, o dia é Normal. */
+export type SavedDayMark = {
+  date: LocalDate;
+  type: DayMarkType;
+  note: string | null;
+  updatedAt: Date;
+};
+
+/** Marcação ou volta a Normal (`deletedAt`), sempre inteira (LWW). */
+export type DayMarkWrite = SavedDayMark & { deletedAt: Date | null };
+
 /**
  * Resposta do `upsert_punch`. `failed`: falha que passa sozinha (rede, sessão expirada, servidor
  * fora), vale tentar de novo; `rejected`: o servidor recusou a escrita e vai recusar de novo.
@@ -34,6 +45,9 @@ export type Punches = {
   /** Batidas não excluídas dos dias locais de `start` a `end`, inclusive. */
   between: (start: LocalDate, end: LocalDate) => Promise<Punch[]>;
   upsert: (write: PunchWrite) => Promise<UpsertPunchResult>;
+  /** Marcações não excluídas dos dias `start` a `end`, inclusive. */
+  marksBetween: (start: LocalDate, end: LocalDate) => Promise<SavedDayMark[]>;
+  upsertMark: (write: DayMarkWrite) => Promise<Exclude<UpsertPunchResult, "duplicate_minute">>;
 };
 
 export const PunchesContext = createContext<Punches | null>(null);
@@ -64,8 +78,9 @@ function withQueue(
   end: LocalDate,
 ): Punch[] {
   const byId = new Map(server.map((punch) => [punch.id, punch]));
-  for (const { write, conflict } of queue) {
-    if (conflict) continue;
+  for (const item of queue) {
+    if (!isPunch(item) || item.conflict) continue;
+    const { write } = item;
     byId.delete(write.id);
     const date = toLocalDate(write.punchedAt);
     if (!write.deletedAt && date >= start && date <= end) {
@@ -120,6 +135,47 @@ export function useWritePunch() {
   const outbox = useOutbox();
   const user = useSignedInUser();
   return (write: PunchWrite): Promise<void> => outbox.enqueue(user.id, write);
+}
+
+const isPunch = (item: OutboxItem): item is QueuedPunch => "write" in item;
+
+/** Escritas de batida paradas em conflito, para a Hoje mostrar. */
+export const conflictsOf = (queue: OutboxItem[]): QueuedPunch[] =>
+  queue.filter((item): item is QueuedPunch => isPunch(item) && item.conflict !== null);
+
+/**
+ * Marcações do usuário da sessão dos dias `start` a `end`, já com o que está na fila do aparelho
+ * (a escrita mais nova de cada dia vale). `queueOnly` como em `usePunchesBetween`.
+ */
+export function useDayMarksBetween(start: LocalDate, end: LocalDate) {
+  const punches = usePunches();
+  const user = useSignedInUser();
+  const queue = useQueuedPunches();
+  const server = useQuery({
+    queryKey: [...punchesKey(user.id), "marks", start, end],
+    queryFn: () => punches.marksBetween(start, end),
+  });
+  const queueOnly = !server.data && server.fetchStatus === "paused";
+  const saved = server.data ?? (queueOnly ? [] : undefined);
+  let data: SavedDayMark[] | undefined;
+  if (saved && queue) {
+    const byDate = new Map(saved.map((mark) => [mark.date, mark]));
+    for (const item of queue) {
+      if (!("mark" in item) || item.mark.date < start || item.mark.date > end) continue;
+      const { deletedAt, ...mark } = item.mark;
+      if (deletedAt) byDate.delete(mark.date);
+      else byDate.set(mark.date, mark);
+    }
+    data = [...byDate.values()];
+  }
+  return { data, queueOnly, isError: server.isError, refetch: server.refetch };
+}
+
+/** Grava a marcação do dia na outbox (D3), como as batidas. */
+export function useWriteDayMark() {
+  const outbox = useOutbox();
+  const user = useSignedInUser();
+  return (mark: DayMarkWrite): Promise<void> => outbox.enqueueMark(user.id, mark);
 }
 
 /** Recarrega as batidas do usuário depois que a fila subiu. */
