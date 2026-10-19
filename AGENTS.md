@@ -6,17 +6,17 @@ PWA para o trabalhador controlar o próprio ponto (batidas), saldo de horas e es
 
 Leia antes de implementar qualquer coisa:
 
-| Arquivo                                                                                | Conteúdo                                                               |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [docs/01-contexto.md](docs/01-contexto.md)                                             | Problema, objetivos, não-objetivos, escopo                             |
-| [docs/02-regras-de-negocio.md](docs/02-regras-de-negocio.md)                           | Jornada, saldo, horas extras, período, salário — **regras de cálculo** |
-| [docs/03-arquitetura.md](docs/03-arquitetura.md)                                       | Stack, componentes, decisões de system design, custos                  |
-| [docs/04-modelo-de-dados.md](docs/04-modelo-de-dados.md)                               | Tabelas, RLS, triggers                                                 |
-| [docs/05-seguranca.md](docs/05-seguranca.md)                                           | Criptografia E2E do salário, cofre, repositório público                |
-| [docs/06-ocr.md](docs/06-ocr.md)                                                       | Leitura do comprovante do REP                                          |
-| [docs/07-design-system.md](docs/07-design-system.md)                                   | Identidade, precedência sobre o handoff de design, ajustes decididos   |
-| [design/design_handoff_chimponto/README.md](design/design_handoff_chimponto/README.md) | Spec visual completa (tokens, componentes, telas, microcopy)           |
-| [docs/08-pendencias.md](docs/08-pendencias.md)                                         | Pontos a confirmar com o RH e decisões em aberto                       |
+| Arquivo                                                                                | Conteúdo                                                                                        |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [docs/01-contexto.md](docs/01-contexto.md)                                             | Problema, objetivos, não-objetivos, escopo                                                      |
+| [docs/02-regras-de-negocio.md](docs/02-regras-de-negocio.md)                           | Jornada, saldo, horas extras, período, salário — **regras de cálculo**                          |
+| [docs/03-arquitetura.md](docs/03-arquitetura.md)                                       | Stack, componentes, decisões de system design, custos                                           |
+| [docs/04-modelo-de-dados.md](docs/04-modelo-de-dados.md)                               | Tabelas, RLS, triggers                                                                          |
+| [docs/05-seguranca.md](docs/05-seguranca.md)                                           | Criptografia E2E do salário, cofre, repositório público                                         |
+| [docs/06-ocr.md](docs/06-ocr.md)                                                       | Leitura do comprovante do REP                                                                   |
+| [docs/07-design-system.md](docs/07-design-system.md)                                   | Identidade, precedência sobre o handoff de design, ajustes decididos                            |
+| [design/design_handoff_chimponto/README.md](design/design_handoff_chimponto/README.md) | Spec visual completa (tokens, componentes, telas, microcopy)                                    |
+| [docs/08-pendencias.md](docs/08-pendencias.md)                                         | Pontos a confirmar com o RH, decisões em aberto, edge cases conhecidos e refatorações pendentes |
 
 ## Regras invioláveis
 
@@ -33,15 +33,48 @@ Leia antes de implementar qualquer coisa:
    2. mostrar ao usuário os dois relatórios completos (Standards e Spec);
    3. esperar a aprovação explícita do usuário para commitar.
 
-   A review libera o commit quando o eixo Spec não aponta bug de comportamento e o eixo Standards não aponta violação de regra documentada. Smells e escopo extra já registrado em `docs/` não bloqueiam: vão para `docs/08-pendencias.md`.
+   A review libera o commit quando nenhum achado cai em "Bloqueia" (ver [O que bloqueia e o que vira pendência](#o-que-bloqueia-e-o-que-vira-pendência)). O resto vai para `docs/08-pendencias.md`.
 
-   Se o código mudar depois da review (correções incluídas), a review roda de novo. A regra vale mesmo quando outra skill (ex.: `implement`) manda commitar.
+   Se o código mudar depois da review (correções incluídas), a review roda de novo, só sobre as correções. A regra vale mesmo quando outra skill (ex.: `implement`) manda commitar.
 
    A review roda em uma janela nova (ou após `/clear`), não na janela da implementação. A implementação termina com o código no working tree, sem commit, e as decisões tomadas registradas em `docs/`. As correções da review e a review seguinte ficam na mesma janela da review. Quando o fixed point não é um commit, a chamada diz isso e cita a issue, por exemplo: `/code-review HEAD (working tree) issue #4`.
 
+## O que bloqueia e o que vira pendência
+
+O ticket entra quando o caminho que ele pede funciona. Edge case raro e smell não reabrem a implementação nem a review: viram pendência em `docs/08-pendencias.md`, com o comportamento atual e a correção prevista, e são resolvidos em ticket próprio quando o usuário decidir.
+
+**Bloqueia** (corrige antes do commit) só o que cai em um destes casos:
+
+1. um critério de aceite do ticket falha no uso normal;
+2. o usuário perde ou corrompe dados sem perceber, num cenário de uso normal;
+3. uma regra inviolável (1 a 8) é quebrada, ou o eixo Standards aponta violação de regra documentada.
+
+"Uso normal" não inclui falha do navegador, do aparelho ou do servidor no meio de uma operação, nem dois aparelhos mexendo no mesmo dado ao mesmo tempo.
+
+**Vira pendência** todo o resto, por exemplo:
+
+- cenário que depende de uma combinação improvável (falha de armazenamento seguida de uma ação específica, cache velho mais edição em outro aparelho);
+- efeito visível e recuperável: a tela mostra o estado real e o usuário consegue corrigir;
+- texto, layout ou microcopy;
+- smell, duplicação, nome, organização de código;
+- comportamento fora do escopo do ticket.
+
+Critério rápido: um usuário comum encontra isso usando o app? Se acontecer, ele perde dado sem perceber? Dois "não", pendência. Na dúvida, o agente recomenda e o usuário decide.
+
+**Na implementação:** fazer o que o ticket pede e tratar os erros que o usuário encontra no uso normal. Edge case raro não ganha código; entra em `docs/08` como comportamento atual.
+
+**Na review:**
+
+- O agente passa estes critérios ao sub-agente de Spec, que classifica cada achado em "bloqueia" ou "pendência", com o cenário concreto. O relatório chega ao usuário já separado nas duas classes.
+- Smells do eixo Standards não são corrigidos no ticket: vão direto para a lista de refatorações em `docs/08`.
+- Uma review completa por ticket. Depois das correções, a review seguinte verifica só as correções (o diff delas e se resolvem os achados), não o ticket inteiro. Achado novo fora das correções só bloqueia se cair nos casos acima.
+- No máximo duas rodadas de correção. O que sobrar vai para `docs/08`, e o usuário decide o commit.
+
+**Refatoração** é ticket próprio, aberto a partir da lista de `docs/08` quando um smell atrapalhar uma feature nova ou quando o usuário pedir.
+
 ## Testes (obrigatório)
 
-**TDD em todo código com comportamento** (skill `tdd`): escrever o teste que falha → implementar o mínimo para passar. Um ciclo por fatia vertical; refatoração acontece na etapa de review. Testes só nas _seams_ (interfaces públicas) da tabela abaixo. Nenhum PR sem testes do comportamento que adiciona ou corrige.
+**TDD em todo código com comportamento** (skill `tdd`): escrever o teste que falha → implementar o mínimo para passar. Um ciclo por fatia vertical. Testes só nas _seams_ (interfaces públicas) da tabela abaixo. Nenhum PR sem testes do comportamento que adiciona ou corrige.
 
 | Camada            | Ferramenta                                      | O que testar                                                                                              |
 | ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
