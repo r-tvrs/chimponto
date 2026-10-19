@@ -1,5 +1,6 @@
 import {
   type CompanyRules,
+  type LocalDate,
   nextPeriod,
   type Period,
   periodContaining,
@@ -8,6 +9,7 @@ import {
   toLocalDate,
 } from "@chimponto/domain";
 import { useState } from "react";
+import { useLocation } from "react-router";
 import { useCompanyRules } from "@/company/company";
 import { ErrorState } from "@/components/error-state";
 import { ScreenHeader } from "@/components/screen-header";
@@ -31,8 +33,13 @@ export function PeriodScreen() {
 function PeriodContent({ rules }: { rules: CompanyRules }) {
   const now = useNow();
   const today = toLocalDate(now);
-  // null: o período atual, que acompanha a virada do dia.
-  const [chosen, setChosen] = useState<Period | null>(null);
+  const location = useLocation();
+  // null: o período atual, que acompanha a virada do dia. Vindo da tela Dia, o período daquele dia.
+  const [chosen, setChosen] = useState<Period | null>(() => {
+    const from = (location.state as { date?: LocalDate } | null)?.date;
+    const period = from && periodContaining(from, rules);
+    return period && periodTiming(period, today).kind !== "current" ? period : null;
+  });
   const [filter, setFilter] = useState<DayFilterValue>("all");
   const period = chosen ?? periodContaining(today, rules);
   const timing = periodTiming(period, today);

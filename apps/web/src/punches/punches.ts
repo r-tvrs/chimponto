@@ -93,7 +93,10 @@ export function usePunchesOn(date: LocalDate) {
   };
 }
 
-/** Batidas do usuário da sessão dos dias `start` a `end`, já com o que está na fila do aparelho. */
+/**
+ * Batidas do usuário da sessão dos dias `start` a `end`, já com o que está na fila do aparelho.
+ * `queueOnly`: sem conexão e sem esses dias no cache, `data` é só a fila (D3).
+ */
 export function usePunchesBetween(start: LocalDate, end: LocalDate) {
   const punches = usePunches();
   const user = useSignedInUser();
@@ -102,9 +105,11 @@ export function usePunchesBetween(start: LocalDate, end: LocalDate) {
     queryKey: [...punchesKey(user.id), start, end],
     queryFn: () => punches.between(start, end),
   });
-  const serverPunches = server.data ?? (server.fetchStatus === "paused" ? [] : undefined);
+  const queueOnly = !server.data && server.fetchStatus === "paused";
+  const serverPunches = server.data ?? (queueOnly ? [] : undefined);
   return {
     data: serverPunches && queue && withQueue(serverPunches, queue, start, end),
+    queueOnly,
     isError: server.isError,
     refetch: server.refetch,
   };

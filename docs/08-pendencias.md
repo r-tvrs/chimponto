@@ -78,6 +78,46 @@ Refatorações apontadas na review do #7 (sem efeito no comportamento):
 - Texto "começa em …" do seletor para período futuro nunca aparece, porque o "próximo" fica desabilitado no período atual.
 - Filtro "Pendências (0)" mostra o card da lista vazio, sem estado vazio.
 
+Vindas do #8 (tela Dia). Comportamento atual mantido até decidir.
+
+| # | Questão | Comportamento atual | Afeta |
+|---|---|---|---|
+| 15 | Observação do dia (handoff §6.6). Os critérios do #9 não citam o campo, e `day_marks.type` (`docs/04`) é obrigatório e não tem "normal": um dia Normal com observação não tem onde ser gravado sem mudar o schema | Sem o campo no #8; entra com `day_marks.note` no #9 | Tela Dia, #9, `docs/04` |
+| 16 | Rótulos mudam enquanto o usuário digita (a linha editada pode trocar de rótulo com as outras) | Rótulo sempre pela ordem cronológica, linhas paradas na ordem da tela | Tela Dia |
+| 17 | Trocar as horas de batidas em ciclo (A vai para o minuto de B e B para o de A): a primeira edição chega ao servidor com o minuto ainda ocupado | As edições do ciclo viram conflito `duplicate_minute` na Hoje (todas: como a primeira falha, o minuto que a seguinte quer continua ocupado). Exclusões sobem antes das edições e uma cadeia de edições é ordenada (quem libera o minuto sobe antes); só o ciclo não tem ordem possível | "Salvar dia", sincronização |
+| 18 | Batida criada, movida ou excluída em outro aparelho depois da primeira edição no Dia | O rascunho para de acompanhar as salvas e continua mostrando como estavam; "Salvar dia" grava só o que o usuário mudou desde a primeira edição, sem desfazer o que veio do outro aparelho | Tela Dia |
+| 19 | Sair do Dia com `replace` deixa duas entradas do Período seguidas no histórico (a de antes do Dia e a da volta) | O voltar do sistema logo depois passa pela entrada antiga do Período (no período atual, porque ela não guarda o escolhido). Alternativa: guardar o período escolhido no estado do histórico e sair do Dia com `navigate(-1)` | Tela Dia, Período |
+| 20 | "Salvar dia" falha no meio (o aparelho grava parte das escritas na outbox) | Saindo pelo voltar, o que já entrou na fila sobe sozinho e o dia fica meio salvo, embora o toast tenha dito que não salvou. Salvando de novo, `base` continua o da primeira edição: as escritas que já entraram se repetem com `updatedAt` novo (linhas a mais no `punch_history`; o comentário de `save()` em `day.tsx` diz "mesmo id e valores", o que não é exato), e desfazer no rascunho algo que já entrou na fila não gera escrita (ex.: A movida de 09:00 para 09:10 entra, a falha vem depois; voltar A para 09:00 e salvar deixa A às 09:10 no servidor). Correção prevista: aplicar a `base` cada escrita que entrou na fila | Tela Dia |
+| 21 | Período sem conexão num período que o aparelho nunca baixou | Mostra os dias como vazios ("Sem registro"), pela regra do D3; o Dia desses dias espera a conexão | Período |
+| 22 | Releitura do Período que falha com o resumo já na tela | Troca o resumo por "Não deu para abrir o período" (o Dia mantém o editor; ver `docs/07`) | Período |
+
+Refatorações apontadas na review do #8 (sem efeito no comportamento):
+
+- `labelDraftDay` copia de `daySlots` a montagem dos rótulos que faltam (`missing`/`splice`); candidato a `missingLabels(total, used)`.
+- `OFFLINE_TOAST` e a escolha entre o toast online e o offline repetidos em `day.tsx` e `today/punch-sheet.tsx`, que divergem: o sheet lê `onlineManager.isOnline()` na hora de gravar, o Dia usa o `useOnline()` do render. Candidato a um helper em `punches/`.
+- `<input type="time">` cru em `day/day-punches-card.tsx` repete as classes base de `components/ui/input.tsx`; o sheet usa `<Input className=…>`.
+- `DayAlerts`, `DayTiles` e `Tile` com o mesmo nome em `today/` e `day/`, e o `switch (alert.kind)` repetido nos dois `day-alerts.tsx` (a microcopy difere: handoff §1.4 e §6.2).
+- `DraftRow` (domínio) é o resultado com rótulo e duplicado, não a linha; ao lado de `DraftPunch` e `DraftRowValue`, o nome confunde. Candidato a `LabeledDraftRow`.
+- `fromLocal(date, "12:00")` usado como validador de data em `day.tsx`; candidato a `isLocalDate` no domínio. `Number(date.slice(8, 10))` no toast é o mesmo caso do `LocalDate` desmontado com `slice` acima.
+- `day.test.tsx` é a 4ª cópia dos fakes de `auth`, `punches` e `companies` (period, today, company); candidato a `src/test/fakes.ts`.
+- `day.tsx` tem o único `eslint-disable` do repo (`exhaustive-deps`, com a chave `savedKey` montada em string).
+- `today/punch-sheet.tsx` tem a mesma falha que o Dia tinha: se `writePunch` rejeitar, `saving` fica `true` e o erro some.
+- `writesOf` e `vacatingFirst` são lógica de escrita e sincronização dentro de `day.tsx`; caberiam em `punches/`, ao lado de `withQueue`.
+- Filtro "linhas do rascunho com hora" repetido em `day.tsx` (`flatMap`) e em `labelDraftDay` (`filter`).
+- Regra "hoje vai para a Hoje, passado abre o Dia, futuro não abre" escrita em `period/day-list.tsx` e nos `Navigate` de `day.tsx`.
+- Formato do estado do histórico `{ date }` repetido em `day.tsx` (dois pontos) e lido em `period.tsx` com `as`; candidato a um helper tipado.
+- E2E: `punchDay` copiado entre `day.spec.ts` e `period.spec.ts`, e o laço "voltar até 20 ago → 19 set" três vezes; cabem em `e2e/onboarding.ts`.
+- `ChildLayout` junta `pb-6` e `pb-[max(…)]` por template string; qual vence depende da ordem do CSS gerado. O repo usa `cn()` (tailwind-merge).
+- `day.tsx` junta as linhas com os rótulos por índice (`labeled[i]!`), embora `labelDraftDay` devolva o `id`.
+- "6h" escrito na microcopy de `day/day-alerts.tsx`, com `MAX_MINUTES_WITHOUT_LUNCH` no domínio.
+- `usePunchesOn` e `usePunchesBetween` divergem: só o segundo expõe `queueOnly`, e a regra "consulta pausada sem dados = só a fila" está escrita de dois jeitos. Candidato a um helper comum aos dois.
+- `OfflineDay` (`day.tsx`) copia o layout de `ErrorState`; candidato a um `MascotState` com `onRetry` opcional.
+- O Dia offline depende de montar a mesma chave de consulta que `usePeriodSummary` (`periodContaining` → `usePunchesBetween`); só o comentário, o `docs/03` e o teste amarram as duas pontas.
+- `edited?.base ?? saved` escrito duas vezes em `DayEditor` (`setRows` e `save`); calcular `base` uma vez. `setRows` também congela `base` na primeira edição, e o nome esconde isso (candidato a `editRows`).
+- `DayAlerts` recebe `punchCount` e `expectedLunchMinutes` ao lado de `alerts` porque `odd_punches` não traz a contagem (`short_lunch` traz os minutos); candidato a `{ kind: "odd_punches"; punchCount }` no domínio.
+- `day.test.tsx` dispara as releituras com `queryClient.invalidateQueries()`; o `onlineManager.setOnline` (a releitura da reconexão) é um gatilho que o usuário vê.
+- `day/day-punches-card.tsx` monta ids de dois jeitos: `${row.id}-error` para o erro e `useId()` para o título.
+
 `summarizeDay` ainda não considera feriados nem tipos de dia: `expectedMinutes` vem só de `workdays` e `dailyMinutes`. Chegam com o #9 (tipo do dia) e o #11 (feriados).
 
 ## Implementação

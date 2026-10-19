@@ -6,6 +6,7 @@ import {
   formatDuration,
   formatLongDate,
   formatMonth,
+  formatPunchCount,
   formatShortDuration,
   parseDuration,
   spokenBalance,
@@ -90,6 +91,16 @@ describe("spokenBalance", () => {
     [120, "mais 2 horas e 0 minutos"],
   ])("%i -> %s", (min, expected) => {
     expect(spokenBalance(min)).toBe(expected);
+  });
+});
+
+describe("formatPunchCount", () => {
+  it.each([
+    [1, "1 batida"],
+    [3, "3 batidas"],
+    [5, "5 batidas"],
+  ])("%i -> %s", (count, expected) => {
+    expect(formatPunchCount(count)).toBe(expected);
   });
 });
 

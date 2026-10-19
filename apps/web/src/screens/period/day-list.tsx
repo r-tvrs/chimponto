@@ -2,6 +2,7 @@ import {
   formatDayMonth,
   formatDuration,
   formatMonth,
+  formatPunchCount,
   formatWeekday,
   type LocalDate,
   type PeriodDay,
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Lista dos dias do período (handoff §5.5), do mais recente, com cabeçalho por mês.
- * Só a linha de hoje é tocável (leva à Hoje) até a tela Dia (#8).
+ * Hoje leva à Hoje e os dias passados abrem a tela Dia; os futuros não são tocáveis.
  */
 export function DayList({ days, today }: { days: PeriodDay[]; today: LocalDate }) {
   const newestFirst = [...days].reverse();
@@ -49,6 +50,7 @@ function DayRow({
   children: ReactNode;
 }) {
   const isToday = day.date === today;
+  const target = isToday ? "/" : day.date < today ? `/periodo/${day.date}` : null;
   const label = `${formatWeekday(day.date)}, ${formatDayMonth(day.date)}`;
   const badge = badgeOf(day, isToday);
   const balance = day.status === "complete" ? day.summary.balance : null;
@@ -74,7 +76,7 @@ function DayRow({
         <span className="text-[15px] leading-none font-extrabold text-muted-foreground">—</span>
       )}
       <span className="flex text-muted-foreground [&_svg]:size-4">
-        {isToday && <ChevronRight />}
+        {target && <ChevronRight />}
       </span>
     </>
   );
@@ -84,13 +86,14 @@ function DayRow({
     <>
       {children && <li role="presentation">{children}</li>}
       <li aria-label={label} className={cn(day.status === "future" && "opacity-55")}>
-        {isToday ? (
+        {target ? (
           <Link
-            to="/"
-            aria-label={`${label}, abrir Hoje`}
+            to={target}
+            aria-label={isToday ? `${label}, abrir Hoje` : `${label}, abrir o dia`}
             className={cn(
               rowClass,
-              "bg-primary/12 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30",
+              isToday && "bg-primary/12",
+              "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30",
             )}
           >
             {content}
@@ -128,7 +131,7 @@ function badgeOf(day: PeriodDay, isToday: boolean): DayBadge | null {
   if (day.status === "pending") return { variant: "pending", text: "Sem registro" };
   const kinds = day.summary.alerts.map((alert) => alert.kind);
   if (kinds.includes("odd_punches"))
-    return { variant: "warning", text: `${day.punchCount} batidas` };
+    return { variant: "warning", text: formatPunchCount(day.punchCount) };
   if (kinds.includes("missing_lunch")) return { variant: "warning", text: "Sem almoço" };
   if (kinds.includes("short_lunch")) return { variant: "warning", text: "Almoço curto" };
   return null;

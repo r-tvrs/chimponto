@@ -11,6 +11,11 @@ export function formatDuration(minutes: number): string {
   return `${Math.floor(abs / 60)}h${String(abs % 60).padStart(2, "0")}`;
 }
 
+/** 1 -> "1 batida", 3 -> "3 batidas". */
+export function formatPunchCount(count: number): string {
+  return `${count} batida${count === 1 ? "" : "s"}`;
+}
+
 /** Para frases: 53 -> "53 min", 60 -> "1h", 65 -> "1h05". Ignora o sinal. */
 export function formatShortDuration(minutes: number): string {
   const abs = Math.abs(minutes);

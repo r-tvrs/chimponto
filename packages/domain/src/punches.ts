@@ -19,14 +19,23 @@ function labelAt(position: number): PunchLabel {
   return POSITION_LABELS[position] ?? (position % 2 === 0 ? "extra_out" : "extra_return");
 }
 
+/** Batidas de um dia completo com `count` delas: 4, ou o total arredondado para par (§2.1). */
+function fullDayCount(count: number): number {
+  return Math.max(POSITION_LABELS.length, count + (count % 2));
+}
+
 /** Batidas de um mesmo dia local, ordenadas por horário e com o rótulo da posição (§2.1). */
 export function labelDay<P extends DayPunch>(punches: P[], now: Date): LabeledPunch<P>[] {
-  const sorted = [...punches].sort((a, b) => a.punchedAt.getTime() - b.punchedAt.getTime());
+  const sorted = inTimeOrder(punches);
   const labels = sorted.map((_, i) => labelAt(i));
   if (sorted.length === 2 && isEntryAndExit(sorted[0]!.punchedAt, sorted[1]!.punchedAt, now)) {
     labels[1] = "exit";
   }
   return sorted.map((punch, i) => ({ punch, label: labels[i]! }));
+}
+
+function inTimeOrder<P extends DayPunch>(punches: P[]): P[] {
+  return [...punches].sort((a, b) => a.punchedAt.getTime() - b.punchedAt.getTime());
 }
 
 function isEntryAndExit(first: Date, second: Date, now: Date): boolean {
@@ -83,7 +92,7 @@ export type DaySlots<P extends DayPunch> = { slots: PunchSlot<P>[]; next: PunchL
 export function daySlots<P extends DayPunch>(punches: P[], now: Date): DaySlots<P> {
   const done = labelDay(punches, now);
   const doneSlots = done.map((d) => ({ kind: "done" as const, ...d }));
-  const total = Math.max(POSITION_LABELS.length, done.length + (done.length % 2));
+  const total = fullDayCount(done.length);
   const next = labelCandidate(punches, { at: truncateToMinute(now) }, now).label;
   if (done.length === total) return { slots: doneSlots, next };
 
@@ -101,4 +110,45 @@ export function daySlots<P extends DayPunch>(punches: P[], now: Date): DaySlots<
     ],
     next,
   };
+}
+
+/** Linha do rascunho da tela Dia: uma batida, ou uma linha ainda sem hora (`punchedAt` null). */
+export type DraftPunch = { id: string; punchedAt: Date | null };
+
+/** `duplicate`: outra linha está no mesmo minuto (§2: uma batida por minuto). */
+export type DraftRow = { id: string; label: PunchLabel; duplicate: boolean };
+
+/**
+ * Rascunho com que a tela Dia abre: as batidas em ordem cronológica e, depois delas, linhas sem
+ * hora (ids de `newId`) até um dia completo.
+ */
+export function initialDraft(punches: DayPunch[], newId: () => string): DraftPunch[] {
+  const sorted = inTimeOrder(punches);
+  const empty = Array.from({ length: fullDayCount(sorted.length) - sorted.length }, () => ({
+    id: newId(),
+    punchedAt: null,
+  }));
+  return [...sorted.map(({ id, punchedAt }) => ({ id, punchedAt })), ...empty];
+}
+
+/**
+ * Rótulos das linhas do rascunho de um dia, na ordem da tela. As com hora levam o rótulo da ordem
+ * cronológica (§2.1); as vazias, os rótulos de um dia completo que as preenchidas não cobrem, na
+ * ordem do dia (como os lugares pendentes de `daySlots`).
+ */
+export function labelDraftDay(rows: DraftPunch[], now: Date): DraftRow[] {
+  const filled = rows.filter((row): row is DayPunch => row.punchedAt !== null);
+  const labelById = new Map(labelDay(filled, now).map(({ punch, label }) => [punch.id, label]));
+  const total = fullDayCount(rows.length);
+  const missing = Array.from({ length: total }, (_, i) => labelAt(i));
+  for (const label of labelById.values()) {
+    const i = missing.indexOf(label);
+    if (i >= 0) missing.splice(i, 1);
+  }
+  return rows.map((row) => ({
+    id: row.id,
+    label: labelById.get(row.id) ?? missing.shift()!,
+    duplicate:
+      !!row.punchedAt && isDuplicateMinute(filled, { at: row.punchedAt, editingId: row.id }),
+  }));
 }

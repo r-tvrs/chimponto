@@ -2,7 +2,7 @@ import { type CompanyRules, companyRulesSchema, fromLocal, toLocalDate } from "@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes, useParams } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, AuthContext } from "@/auth/auth";
 import { type Companies, CompaniesContext } from "@/company/company";
@@ -58,7 +58,15 @@ function fakeCompanies(rules: Partial<CompanyRules> = {}): Companies {
 let dbCount = 0;
 const dbs: OfflineDb[] = [];
 
-function renderPeriod(punches: Punch[], companies = fakeCompanies()) {
+function DayStub() {
+  return <p>Tela Dia {useParams().date}</p>;
+}
+
+function renderPeriod(
+  punches: Punch[],
+  companies = fakeCompanies(),
+  entry: { pathname: string; state?: unknown } = { pathname: "/periodo" },
+) {
   const db = new OfflineDb(`period-test-${++dbCount}`);
   dbs.push(db);
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -68,10 +76,11 @@ function renderPeriod(punches: Punch[], companies = fakeCompanies()) {
         <CompaniesContext.Provider value={companies}>
           <PunchesContext.Provider value={fakePunches(punches)}>
             <OutboxContext.Provider value={createOutbox(db)}>
-              <MemoryRouter initialEntries={["/periodo"]}>
+              <MemoryRouter initialEntries={[entry]}>
                 <Routes>
                   <Route path="/" element={<p>Tela Hoje</p>} />
                   <Route path="/periodo" element={<PeriodScreen />} />
+                  <Route path="/periodo/:date" element={<DayStub />} />
                 </Routes>
               </MemoryRouter>
             </OutboxContext.Provider>
@@ -203,6 +212,14 @@ describe("day list", () => {
     expect(row(label)).toHaveTextContent(worked);
   });
 
+  it("says 1 batida, in the singular, for a day with a single punch", async () => {
+    renderPeriod(day("2026-10-15", "09:00"));
+    await screen.findByRole("list", { name: "Dias do período" });
+
+    expect(row("qui, 15 out")).toHaveTextContent("1 batida");
+    expect(row("qui, 15 out")).not.toHaveTextContent("1 batidas");
+  });
+
   it("shows a complete day with its balance and no badge, and dims the days ahead", async () => {
     renderPeriod(punches);
     await screen.findByRole("list", { name: "Dias do período" });
@@ -240,5 +257,27 @@ describe("day list", () => {
     await user.click(await screen.findByRole("link", { name: /sex, 16 out/ }));
 
     expect(screen.getByText("Tela Hoje")).toBeVisible();
+  });
+
+  it("opens Dia from a past day's row", async () => {
+    const user = renderPeriod(punches);
+
+    await user.click(await screen.findByRole("link", { name: /qui, 15 out/ }));
+
+    expect(screen.getByText("Tela Dia 2026-10-15")).toBeVisible();
+  });
+
+  it("leaves the days ahead untappable", async () => {
+    renderPeriod(punches);
+
+    const ahead = await screen.findByRole("listitem", { name: "sáb, 17 out" });
+    expect(within(ahead).queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("comes back from Dia on the period of that day", async () => {
+    renderPeriod(punches, fakeCompanies(), { pathname: "/periodo", state: { date: "2026-09-15" } });
+
+    const selector = await screen.findByRole("group", { name: "Período" });
+    expect(selector).toHaveTextContent("20 ago → 19 set");
   });
 });

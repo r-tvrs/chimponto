@@ -1,5 +1,6 @@
 import { Navigate, type RouteObject } from "react-router";
-import { AppShell } from "@/components/app-shell";
+import { AppShell, ChildLayout, TabsLayout } from "@/components/app-shell";
+import { DayScreen } from "@/screens/day";
 import { CompanyScreen } from "@/screens/company";
 import { LoginScreen } from "@/screens/login";
 import { PeriodScreen } from "@/screens/period";
@@ -40,10 +41,19 @@ export const routes: RouteObject[] = [
           </RequireSession>
         ),
         children: [
-          { index: true, element: <TodayScreen /> },
-          { path: "periodo", element: <PeriodScreen /> },
-          { path: "salario", element: <SalaryScreen /> },
-          { path: "ajustes", element: <SettingsScreen /> },
+          {
+            element: <TabsLayout />,
+            children: [
+              { index: true, element: <TodayScreen /> },
+              { path: "periodo", element: <PeriodScreen /> },
+              { path: "salario", element: <SalaryScreen /> },
+              { path: "ajustes", element: <SettingsScreen /> },
+            ],
+          },
+          {
+            element: <ChildLayout />,
+            children: [{ path: "periodo/:date", element: <DayScreen /> }],
+          },
         ],
       },
       { path: "*", element: <Navigate to="/" replace /> },
