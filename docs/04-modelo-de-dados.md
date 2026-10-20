@@ -39,15 +39,7 @@ Todas as tabelas em `public` com **RLS habilitado**. `auth.uid()` identifica o u
 | reminders_enabled | boolean | padrão true |
 | reminder_lead_minutes | int | padrão 10 |
 
-### `holidays`
-| Coluna | Tipo | Nota |
-|---|---|---|
-| id | uuid pk | |
-| company_id | uuid null | `null` = nacional |
-| date | date | |
-| name | text | |
-| kind | text | `holiday` \| `company_day_off` |
-unique(company_id, date)
+Sem tabela de feriados na v1: feriado é tipo do dia em `day_marks` (`docs/03` D7).
 
 ### `punches`
 | Coluna | Tipo | Nota |
@@ -70,7 +62,7 @@ unique(company_id, date)
 |---|---|---|
 | user_id | uuid | pk composta |
 | date | date | pk composta |
-| type | text | `falta` \| `atestado` \| `ferias` \| `folga_compensada` \| `abono` |
+| type | text | `falta` \| `atestado` \| `ferias` \| `folga_compensada` \| `abono` \| `feriado` |
 | note | text null | |
 | updated_at / deleted_at | timestamptz | sincronização offline |
 
@@ -120,7 +112,6 @@ unique(user_id, local_date, type). Índice `(status, send_at)`.
 | company_members | o próprio registro; admin vê membros (sem dados pessoais além do nome) | via RPC |
 | company_invites | admin | admin |
 | profiles | dono | dono (INSERT/UPDATE); criado por trigger no cadastro; exclusão só via `delete_account` |
-| holidays | nacional ou da própria empresa | admin da empresa |
 | punches, punch_history | dono | `punches` só via RPC `upsert_punch` (sem DELETE físico; exclusão é `deleted_at`); `punch_history` só via trigger |
 | day_marks | dono | só via RPC `upsert_day_mark` (sem DELETE físico; voltar a Normal é `deleted_at`) |
 | vaults, salary_profiles, payslip_actuals | dono | dono |

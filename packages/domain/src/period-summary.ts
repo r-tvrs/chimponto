@@ -26,7 +26,7 @@ export type PeriodDay = {
   unresolved: boolean;
 };
 
-/** Tipo de adicional da hora extra (docs/02 §1). Feriados chegam com o #11. */
+/** Tipo de adicional da hora extra (docs/02 §1). */
 export type OvertimeKind = "weekday" | "saturday" | "sundayHoliday";
 
 export type PeriodSummary = {
@@ -43,7 +43,8 @@ export type PeriodSummary = {
   absenceDays: number;
 };
 
-function overtimeKindOf(date: LocalDate): OvertimeKind {
+function overtimeKindOf(date: LocalDate, mark: DayMarkType | null): OvertimeKind {
+  if (mark === "feriado") return "sundayHoliday";
   const weekday = weekdayOf(date);
   return weekday === "sat" ? "saturday" : weekday === "sun" ? "sundayHoliday" : "weekday";
 }
@@ -76,9 +77,9 @@ export function summarizePeriod(
     days.push({ date, status, mark, summary, punchCount: dayPunches.length, unresolved });
   }
 
-  const closed = days.flatMap(({ date, status, summary }) =>
+  const closed = days.flatMap(({ date, status, mark, summary }) =>
     status === "complete" && summary.balance !== null
-      ? [{ kind: overtimeKindOf(date), balance: summary.balance }]
+      ? [{ kind: overtimeKindOf(date, mark), balance: summary.balance }]
       : [],
   );
   const overtimeMinutes: Record<OvertimeKind, number> = {

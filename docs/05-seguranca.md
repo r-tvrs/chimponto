@@ -4,7 +4,7 @@
 
 | Dado | Proteção |
 |---|---|
-| Batidas, marcações de dia, empresa, feriados | Texto puro no banco; isolado por RLS |
+| Batidas, marcações de dia (feriado incluído), empresa | Texto puro no banco; isolado por RLS |
 | Salário, descontos, dependentes, líquido real | **Cifrado no navegador** (E2E). Servidor guarda apenas ciphertext |
 | Resultado do cálculo de salário | Nunca persistido nem enviado; calculado em memória |
 | Imagens do comprovante | Nunca enviadas nem persistidas |

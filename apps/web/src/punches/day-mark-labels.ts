@@ -7,4 +7,5 @@ export const DAY_MARK_LABELS: Record<DayMarkType, string> = {
   ferias: "Férias",
   folga_compensada: "Folga",
   abono: "Abono",
+  feriado: "Feriado",
 };

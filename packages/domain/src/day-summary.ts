@@ -17,7 +17,14 @@ export type DayRules = Pick<
 >;
 
 /** Tipo do dia marcado à mão (§3.1). Sem marcação, o dia é Normal. */
-export const DAY_MARK_TYPES = ["falta", "atestado", "ferias", "folga_compensada", "abono"] as const;
+export const DAY_MARK_TYPES = [
+  "falta",
+  "atestado",
+  "ferias",
+  "folga_compensada",
+  "abono",
+  "feriado",
+] as const;
 export type DayMarkType = (typeof DAY_MARK_TYPES)[number];
 export type DayMark = { date: LocalDate; type: DayMarkType };
 

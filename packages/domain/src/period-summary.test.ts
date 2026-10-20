@@ -167,4 +167,19 @@ describe("summarizePeriod, day marks", () => {
       deficitMinutes: 0,
     });
   });
+
+  it("turns minutes worked on a day marked as feriado into Sunday/holiday overtime, even on a Saturday", () => {
+    const marks: DayMark[] = [
+      { date: "2026-10-12", type: "feriado" }, // seg
+      { date: "2026-10-10", type: "feriado" }, // sáb
+    ];
+    const punches = [
+      ...day("2026-10-12", "09:00", "11:00"),
+      ...day("2026-10-10", "09:00", "10:00"),
+    ];
+    const s = summary(punches, {}, NOW, marks);
+
+    expect(s.overtimeMinutes).toEqual({ weekday: 0, saturday: 0, sundayHoliday: 180 });
+    expect(s.days.find((d) => d.date === "2026-10-12")?.mark).toBe("feriado");
+  });
 });

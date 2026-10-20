@@ -126,7 +126,14 @@ Refatorações apontadas na review do #8 (sem efeito no comportamento):
 - `day.test.tsx` dispara as releituras com `queryClient.invalidateQueries()`; o `onlineManager.setOnline` (a releitura da reconexão) é um gatilho que o usuário vê.
 - `day/day-punches-card.tsx` monta ids de dois jeitos: `${row.id}-error` para o erro e `useId()` para o título.
 
-`summarizeDay` ainda não considera feriados: `expectedMinutes` vem de `workdays`, `dailyMinutes` e do tipo do dia. Chegam com o #11.
+Feriado é tipo do dia marcado à mão (#11, `docs/03` D7). Calendário automático (BrasilAPI e feriados da empresa) fica para ticket próprio, se os colegas pedirem.
+
+Vindas do #11 (feriado). Comportamento atual mantido até decidir.
+
+- Microcopy da tela Empresa ainda fala em feriado da empresa: `company.tsx:85` ("Colegas da mesma empresa dividem jornada e feriados") e `:103` ("Você define jornada e feriados"), vindos do handoff §431. Pela D7 o feriado é de cada usuário. Correção prevista: registrar o ajuste no `docs/07` e trocar o texto.
+- O handoff (README:331 e :469) ainda diz que o feriado "vem do calendário da empresa"; o ajuste do `docs/07` prevalece.
+- A lista do check `day_marks_type_check` (SQL) repete `DAY_MARK_TYPES`; tipo novo pede editar domínio, labels, chips e migração juntos. Acoplamento conhecido: o banco valida sozinho.
+- `feriado` → `expectedMinutes = 0` coberto só pelo teste do Período; `summarizeDay` não tem caso direto de feriado (a regra é a mesma de qualquer dia marcado, testada no #9).
 
 Vindas do #9 (tipo do dia). Comportamento atual mantido até decidir.
 
@@ -134,7 +141,7 @@ Vindas do #9 (tipo do dia). Comportamento atual mantido até decidir.
 - `QueuedDayMark` e `QueuedPunch` se distinguem por `"mark" in item` / `"write" in item`, sem campo discriminante; os itens antigos da outbox não têm `kind`, e acrescentar um pede migração do Dexie.
 - `useDayMarksBetween` repete de `usePunchesBetween` a regra da consulta pausada (`queueOnly`) e a mescla com a fila.
 - `period.test.tsx` e `day.test.tsx` ganharam o mesmo `marksBetween` no fake (ver o item dos fakes acima).
-- A regra "falta ou abonado" escrita em três lugares: `day-type-chips.tsx` (`NOTES[value === "falta" ? …]`), `period/day-list.tsx` (variante do badge) e `absenceDays` no domínio. Candidato a `isAbsence(mark)` no domínio.
+- A nota do chip escolhida por condição em `day-type-chips.tsx` (`NOTES[value === "falta" || value === "feriado" ? value : "abonado"]`), que cresce a cada tipo novo; candidato a um `Record<DayMarkType, string>` como `DAY_MARK_LABELS`. A regra "é falta" fica em `period/day-list.tsx` (variante do badge) e em `absenceDays` no domínio, e só `falta` conta: feriado não é falta. Candidato a `isAbsence(mark)` no domínio.
 - `DayMarkType | null` com `null` = "Normal": espalha `?? null` e `?? "normal"`, e deixa `chosenType` em `day.tsx` com três estados (`undefined`/`null`/tipo).
 - `save()` em `day.tsx` monta o `DayMarkWrite` à mão nos dois ramos e depende do `savedMark!`; candidato a `markWriteOf(savedMark, type, at)` ao lado de `writesOf`.
 - `"write" in item` em `sync.ts` repete o `isPunch` exportado por `punches.ts`; `"mark" in item` em `useDayMarksBetween` idem.

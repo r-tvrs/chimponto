@@ -223,6 +223,7 @@ describe("day list", () => {
     ["ferias", "Férias", "bg-muted"],
     ["folga_compensada", "Folga", "bg-muted"],
     ["abono", "Abono", "bg-muted"],
+    ["feriado", "Feriado", "bg-muted"],
   ] as const)("marks a day of type %s with the badge %s", async (type, text, tone) => {
     const mark = { date: "2026-10-12", type, note: null, updatedAt: new Date() };
     renderPeriod([], fakeCompanies(), undefined, [mark]);

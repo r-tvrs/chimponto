@@ -2,14 +2,15 @@ import { DAY_MARK_TYPES, type DayMarkType } from "@chimponto/domain";
 import { DAY_MARK_LABELS } from "@/punches/day-mark-labels";
 import { cn } from "@/lib/utils";
 
-const NOTES: Record<"falta" | "abonado", string> = {
+const NOTES: Record<"falta" | "feriado" | "abonado", string> = {
   falta: "Falta sem abono desconta o dia e o DSR da semana.",
+  feriado: "Feriado: não conta jornada.",
   abonado: "Dia abonado: não conta jornada.",
 };
 
 /**
- * Tipo do dia na tela Dia (handoff §6.3, sem "Feriado": docs/07): chips de 38 px, com a nota do
- * tipo escolhido. `null` é Normal.
+ * Tipo do dia na tela Dia (handoff §6.3, com "Feriado" marcado à mão: docs/07): chips de 38 px,
+ * com a nota do tipo escolhido. `null` é Normal.
  */
 export function DayTypeChips({
   value,
@@ -39,7 +40,7 @@ export function DayTypeChips({
       </div>
       {value && (
         <p className="text-[12.5px] leading-[1.4] font-semibold text-muted-foreground">
-          {NOTES[value === "falta" ? "falta" : "abonado"]}
+          {NOTES[value === "falta" || value === "feriado" ? value : "abonado"]}
         </p>
       )}
     </div>

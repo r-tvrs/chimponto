@@ -2,7 +2,7 @@
 -- lógica); admin da empresa não lê as marcações dos membros (docs/04 §RLS e §RPCs).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(18);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000000a', 'ana@example.com'),
@@ -79,10 +79,15 @@ select results_eq(
 );
 
 select throws_ok(
-  $$ select public.upsert_day_mark('2026-10-13', 'feriado', null, now(), null) $$,
+  $$ select public.upsert_day_mark('2026-10-13', 'plantao', null, now(), null) $$,
   '23514',
   null,
   'tipo fora da lista é recusado'
+);
+select is(
+  public.upsert_day_mark('2026-10-12', 'feriado', null, now(), null),
+  'applied',
+  'feriado é um tipo do dia'
 );
 
 -- Escrita direta

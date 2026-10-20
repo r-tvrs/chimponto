@@ -60,17 +60,17 @@ O rótulo não é persistido; é sempre derivado da ordem cronológica, então b
 3. `workedMinutes` = soma de `(saída − entrada)` de cada par.
 4. `expectedMinutes`:
    - dia útil sem marcação especial → `dailyMinutes`
-   - sábado, domingo, feriado → 0
-   - dia com tipo `atestado`, `ferias`, `folga_compensada`, `abono` → 0
+   - sábado, domingo → 0
+   - dia com tipo `atestado`, `ferias`, `folga_compensada`, `abono`, `feriado` → 0
    - dia com tipo `falta` → 0 para horas (§3.1); o desconto é do salário (§8.4)
 5. `rawBalance = workedMinutes − expectedMinutes`.
 6. Aplicar tolerância (§4) → `balance`.
 
 ### 3.1 Tipos de dia (marcação manual)
 
-`falta` · `atestado` · `ferias` · `folga_compensada` · `abono`
+`falta` · `atestado` · `ferias` · `folga_compensada` · `abono` · `feriado`
 
-- **Batidas em dia marcado:** continuam somando `workedMinutes`. Como `expectedMinutes = 0`, a tolerância (§4) não se aplica e o saldo positivo vira hora extra do tipo do dia da semana (§6). Dia marcado sem batidas não tem jornada nem fica `pending`. Vale também para `falta`: batidas num dia de falta viram hora extra.
+- **Batidas em dia marcado:** continuam somando `workedMinutes`. Como `expectedMinutes = 0`, a tolerância (§4) não se aplica e o saldo positivo vira hora extra do tipo do dia da semana (§6); em `feriado`, de domingo/feriado. Dia marcado sem batidas não tem jornada nem fica `pending`. Vale também para `falta`: batidas num dia de falta viram hora extra.
 - **Falta na v1:** `expectedMinutes = 0` para horas, sem `deficitMinutes`; o período só conta os dias de falta até hoje (`absenceDays`). O desconto do dia e do DSR (§8.4) entra com o salário (v1.2).
 
 ### 3.2 Dia útil passado sem batidas e sem tipo
@@ -115,7 +115,7 @@ A tela de período mostra: saldo líquido em horas, horas extras por tipo, débi
 
 - Entram nos totais só os dias `complete` até hoje. Hoje entra quando fecha; dias futuros nunca, mesmo com batidas.
 - Pendências: dias passados `pending` ou `incomplete`. Hoje e futuros não contam.
-- O tipo de adicional sai do dia da semana do calendário (sábado, domingo); feriados entram em domingo/feriado com o #11.
+- O tipo de adicional sai do dia da semana (sábado, domingo); dia marcado `feriado` é domingo/feriado, mesmo num sábado.
 - Saldo líquido = soma dos `balance` dos dias que entram; é o mesmo nos dois modos.
 - Com `compensateWithinPeriod = true`, o sábado se compensa com os outros dias e o saldo positivo vira hora extra de dia útil.
 
@@ -212,6 +212,6 @@ net = gross − INSS − IRRF − advance − healthPlan − dentalPlan − Σ o
 
 ## 9. Feriados
 
-- Nacionais: obtidos da BrasilAPI (`/api/feriados/v1/{ano}`), gravados globalmente.
-- Municipais, estaduais e emendas: cadastrados pelo admin da empresa.
-- Ponto facultativo/emenda: cadastrável como `folga` da empresa (expected = 0) ou ignorado, a critério do admin.
+- O usuário marca o feriado no dia, como os outros tipos (§3.1): nacional, estadual ou municipal, sem distinção.
+- Ponto facultativo ou emenda em que a empresa folga: marcar como `folga_compensada` ou `feriado`, conforme a empresa paga o trabalho nesse dia.
+- Sem calendário compartilhado na v1 (`docs/03` D7).

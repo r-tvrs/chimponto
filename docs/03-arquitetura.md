@@ -92,10 +92,10 @@ Detalhes da implementação (`apps/web/src/punches/`):
 - Todo usuário pertence a uma empresa (`company_members`, um por usuário na v1).
 - Entrada por convite: link com token de uso limitado e expiração; aceito via RPC `accept_invite`.
 - Sem convite: o usuário cria a própria empresa e vira admin.
-- Admin edita configurações e feriados da empresa; não lê dados de outros membros.
+- Admin edita configurações da empresa; não lê dados de outros membros.
 
-### D7 — Feriados nacionais
-Edge Function (ou GitHub Action) anual busca a BrasilAPI e grava em `holidays` com `company_id = null`.
+### D7 — Feriados
+Feriado é tipo do dia marcado pelo próprio usuário (`day_marks.type = 'feriado'`), como falta ou atestado: sem calendário compartilhado, sem rotina da BrasilAPI e sem tela de admin. Custa marcar uns 10 a 12 dias por ano; esquecido, o dia fica "Sem registro" até ser marcado. Calendário automático (nacionais da BrasilAPI e feriados da empresa) só se os colegas pedirem, em ticket próprio.
 
 ## Rotinas (GitHub Actions)
 

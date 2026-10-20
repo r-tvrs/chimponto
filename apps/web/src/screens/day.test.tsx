@@ -483,7 +483,7 @@ describe("day screen", () => {
 describe("day type", () => {
   const dayType = () => screen.findByRole("group", { name: "Tipo do dia" });
 
-  it("starts as Normal and offers the types without Feriado", async () => {
+  it("starts as Normal and offers every day type", async () => {
     renderDay(day(DAY, "09:00", "12:00", "13:00", "18:00"));
     const chips = within(await dayType()).getAllByRole("button");
 
@@ -494,6 +494,7 @@ describe("day type", () => {
       "Férias",
       "Folga",
       "Abono",
+      "Feriado",
     ]);
     expect(within(await dayType()).getByRole("button", { name: "Normal" })).toHaveAttribute(
       "aria-pressed",
@@ -518,6 +519,11 @@ describe("day type", () => {
 
     expect(screen.getByText("Dia abonado: não conta jornada.")).toBeVisible();
     expect(screen.queryByText(/Falta sem abono/)).not.toBeInTheDocument();
+
+    await user.click(within(await dayType()).getByRole("button", { name: "Feriado" }));
+
+    expect(screen.getByText("Feriado: não conta jornada.")).toBeVisible();
+    expect(balance).toHaveTextContent("+8h00");
   });
 
   it("saves the type through the outbox, alone when the punches did not change", async () => {

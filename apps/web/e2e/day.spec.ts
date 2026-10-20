@@ -102,3 +102,39 @@ test("marca um dia como atestado e vê o badge e o saldo no período", async ({ 
   await expect(row).toContainText("Atestado");
   await expect(row).toContainText("+4h00");
 });
+
+test("marca um dia útil sem batidas como feriado e ele deixa de ser Sem registro", async ({
+  page,
+}, testInfo) => {
+  const email = `rui.lopes+${Date.now()}.${testInfo.workerIndex}@example.com`;
+  await page.goto(await requestMagicLink(page, email));
+  await createCompany(page, "Bananal Ltda");
+
+  await page.getByRole("link", { name: /Saldo do período · / }).click();
+  const selector = page.getByRole("group", { name: "Período" });
+  const previous = selector.getByRole("button", { name: "Período anterior" });
+  while (!(await selector.textContent())?.includes("20 ago → 19 set")) await previous.click();
+
+  const row = page.getByRole("listitem", { name: "seg, 7 set" });
+  await expect(row).toContainText("Sem registro");
+  await row.getByRole("link").click();
+
+  await page
+    .getByRole("group", { name: "Tipo do dia" })
+    .getByRole("button", { name: "Feriado" })
+    .click();
+  await expect(page.getByText("Feriado: não conta jornada.")).toBeVisible();
+  await page.getByRole("button", { name: "Salvar dia" }).click();
+
+  await expect(page.getByRole("status")).toContainText("Dia 7 salvo");
+  await expect(row).toContainText("Feriado");
+  await expect(row).not.toContainText("Sem registro");
+
+  // Sobe pela fila: com a fila vazia, a marcação volta do servidor.
+  await page.getByRole("link", { name: "Hoje" }).click();
+  await expect(page.getByText(/na fila/)).toBeHidden();
+  await page.reload();
+  await page.getByRole("link", { name: "Período", exact: true }).click();
+  while (!(await selector.textContent())?.includes("20 ago → 19 set")) await previous.click();
+  await expect(row).toContainText("Feriado");
+});

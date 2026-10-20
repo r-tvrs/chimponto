@@ -26,7 +26,7 @@
 ## Usuários
 
 - **Usuário**: registra as próprias batidas, vê saldo, configura cofre e salário.
-- **Admin da empresa**: além do acima, edita configurações da empresa (jornada, feriados municipais, regras) e gera convites. Não vê dados de outros usuários.
+- **Admin da empresa**: além do acima, edita configurações da empresa (jornada, regras) e gera convites. Não vê dados de outros usuários.
 
 Todo usuário pertence a exatamente uma empresa. Quem se cadastra sem convite cria a própria empresa (e é admin dela).
 
