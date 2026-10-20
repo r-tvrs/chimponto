@@ -1,6 +1,6 @@
 # 06 — OCR do comprovante
 
-Atalho opcional para preencher a batida. Nunca obrigatório.
+Fluxo principal para registrar a batida. Nunca obrigatório: falha na leitura, câmera negada ou sem comprovante caem no registro manual.
 
 ## Formato do comprovante (REP, Portaria 671)
 
@@ -31,7 +31,7 @@ O dado necessário está na linha `PIS:... dd/mm/aaaa hh:mm`.
 
 ## Fluxo
 
-1. Usuário toca "Usar foto do comprovante" na tela de registro.
+1. Usuário toca "Bater ponto": a câmera abre direto. O sheet oferece "Registrar manualmente" como alternativa.
 2. Captura via `<input type="file" accept="image/*" capture="environment">`.
 3. Pré-processamento em canvas: redimensionar (lado maior ~1600 px), escala de cinza, aumento de contraste.
 4. Tesseract.js (`por`), worker e dados de idioma carregados sob demanda e cacheados pelo Service Worker.

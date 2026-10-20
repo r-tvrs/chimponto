@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createCompany, requestMagicLink } from "./onboarding";
+import { createCompany, openManualPunch, requestMagicLink } from "./onboarding";
 
 test("bate o ponto sem sinal, guarda na fila e sobe quando a conexão volta", async ({
   page,
@@ -12,7 +12,7 @@ test("bate o ponto sem sinal, guarda na fila e sobe quando a conexão volta", as
   await context.setOffline(true);
   await expect(page.getByRole("region", { name: "Sem sinal na selva" })).toBeVisible();
 
-  await page.getByRole("button", { name: /Bater ponto/ }).click();
+  await openManualPunch(page);
   const sheet = page.getByRole("dialog", { name: "Bater ponto" });
   await sheet.getByLabel("Hora").fill("09:00");
   await sheet.getByRole("button", { name: "Salvar batida" }).click();
@@ -50,7 +50,7 @@ test("depois da primeira visita, recarregar sem sinal abre a Hoje com as batidas
   await page.goto(await requestMagicLink(page, email));
   await createCompany(page, "Bananal Ltda");
 
-  await page.getByRole("button", { name: /Bater ponto/ }).click();
+  await openManualPunch(page);
   const sheet = page.getByRole("dialog", { name: "Bater ponto" });
   await sheet.getByLabel("Hora").fill("08:30");
   await sheet.getByRole("button", { name: "Salvar batida" }).click();

@@ -20,6 +20,17 @@ export default defineConfig({
         navigateFallback: "/index.html",
         runtimeCaching: [
           {
+            // Worker e core do Tesseract (OCR, docs/06), baixados na primeira leitura; o idioma `por`
+            // fica no IndexedDB do próprio Tesseract.
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/tesseract\.js(-core)?@.*/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "tesseract",
+              expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
             handler: "CacheFirst",
             options: {

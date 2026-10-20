@@ -1,5 +1,5 @@
 import { daySlots, formatLongDate, summarizeDay, toLocalDate } from "@chimponto/domain";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSignedInUser } from "@/auth/auth";
 import { useCompanyRules } from "@/company/company";
 import { Avatar } from "@/components/avatar";
@@ -19,10 +19,18 @@ import { PunchCta } from "./today/punch-cta";
 import { PunchesCard } from "./today/punches-card";
 import { PunchSheet } from "./today/punch-sheet";
 import { OfflineBanner } from "./today/offline-banner";
+import { type ReceiptReading, ReceiptSheet } from "./today/receipt-sheet";
 import { SyncPill } from "./today/sync-pill";
 
-/** Sheet aberto: nova batida ou a edição de uma feita. */
-type SheetTarget = { editing?: Punch };
+/**
+ * Sheet aberto: lendo a foto, a nova batida (manual, ou lida do comprovante) ou a edição de uma
+ * feita. `n` remonta o sheet a cada foto, para os campos partirem da leitura nova.
+ */
+type SheetTarget =
+  | { photo: File; n: number }
+  | { editing?: Punch; reading?: ReceiptReading; message?: string; n?: number };
+
+const UNREADABLE = "Não deu para ler o comprovante. Preencha a hora.";
 
 export function TodayScreen() {
   const user = useSignedInUser();
@@ -36,6 +44,19 @@ export function TodayScreen() {
   const queue = useQueuedPunches() ?? [];
   const conflicts = conflictsOf(queue);
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const photos = useRef(0);
+
+  // Cancelar a câmera cai no registro manual (o React não expõe `cancel` em inputs).
+  useEffect(() => {
+    const input = camera.current;
+    const toManual = () => setSheet({});
+    input?.addEventListener("cancel", toManual);
+    return () => input?.removeEventListener("cancel", toManual);
+  });
+
+  /** Bater ponto abre a câmera traseira (docs/06); a foto nunca é obrigatória. */
+  const openCamera = () => camera.current?.click();
 
   if (punches.isError) {
     return (
@@ -80,16 +101,50 @@ export function TodayScreen() {
             slots={slots}
             forecast={summary.forecast}
             onEdit={(punch) => setSheet({ editing: punch })}
-            onPunch={() => setSheet({})}
+            onPunch={openCamera}
           />
           <DayTiles summary={summary} />
           <PeriodTile rules={rules} now={now} />
         </>
       )}
 
-      <PunchCta summary={summary} done={done} total={slots.length} onPunch={() => setSheet({})} />
+      <PunchCta summary={summary} done={done} total={slots.length} onPunch={openCamera} />
 
-      {sheet && <PunchSheet editing={sheet.editing} onClose={() => setSheet(null)} />}
+      <input
+        ref={camera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        aria-label="Foto do comprovante"
+        hidden
+        onChange={(e) => {
+          const photo = e.target.files?.[0];
+          e.target.value = "";
+          if (photo) setSheet({ photo, n: ++photos.current });
+        }}
+      />
+
+      {sheet &&
+        ("photo" in sheet ? (
+          <ReceiptSheet
+            key={sheet.n}
+            photo={sheet.photo}
+            onRead={(reading) =>
+              setSheet(reading ? { reading, n: sheet.n } : { message: UNREADABLE, n: sheet.n })
+            }
+            onManual={() => setSheet({ n: sheet.n })}
+            onClose={() => setSheet(null)}
+          />
+        ) : (
+          <PunchSheet
+            key={sheet.n}
+            editing={sheet.editing}
+            reading={sheet.reading}
+            message={sheet.message}
+            onPhoto={openCamera}
+            onClose={() => setSheet(null)}
+          />
+        ))}
     </>
   );
 }

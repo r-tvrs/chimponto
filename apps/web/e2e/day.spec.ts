@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { createCompany, requestMagicLink } from "./onboarding";
+import { createCompany, openManualPunch, requestMagicLink } from "./onboarding";
 
 // Dia num período já fechado (20/08 → 19/09/2026), como em period.spec.ts: os totais não dependem
 // da data de execução.
@@ -7,7 +7,7 @@ import { createCompany, requestMagicLink } from "./onboarding";
 /** Registra batidas num dia passado pelo sheet "Bater ponto", trocando a data. */
 async function punchDay(page: Page, date: string, ...times: string[]) {
   for (const time of times) {
-    await page.getByRole("button", { name: /Bater ponto|Dia completo/ }).click();
+    await openManualPunch(page, /Bater ponto|Dia completo/);
     const sheet = page.getByRole("dialog", { name: "Bater ponto" });
     await sheet.getByLabel("Data").fill(date);
     await sheet.getByLabel("Hora").fill(time);

@@ -17,3 +17,9 @@ export async function createCompany(page: Page, name: string) {
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByRole("heading", { name: "Hoje", exact: true })).toBeVisible();
 }
+
+/** Abre o sheet manual: o CTA abre a câmera, e cancelá-la cai no registro manual (docs/06). */
+export async function openManualPunch(page: Page, cta: RegExp = /Bater ponto/) {
+  await page.getByRole("button", { name: cta }).click();
+  await page.getByLabel("Foto do comprovante").dispatchEvent("cancel");
+}

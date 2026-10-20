@@ -22,7 +22,7 @@ Leia antes de implementar qualquer coisa:
 
 1. **Valores financeiros nunca chegam ao servidor em claro.** Salário, descontos, dependentes e resultado do cálculo são cifrados no navegador (ver `docs/05-seguranca.md`).
 2. **Nenhuma imagem é enviada ou persistida.** OCR roda no navegador; a imagem é descartada após a leitura.
-3. **Foto nunca é obrigatória.** Registro manual é o fluxo principal.
+3. **Foto do comprovante é o fluxo principal, mas nunca obrigatória.** "Bater ponto" abre a câmera; falha na leitura, câmera negada ou sem comprovante caem no registro manual, sempre disponível.
 4. **Todo acesso a dados é isolado por usuário via RLS.** Toda tabela nova nasce com RLS habilitado e teste de isolamento.
 5. **Regras de cálculo vivem só em `packages/domain`** (funções puras, sem I/O), com testes. Não duplicar lógica de cálculo em componentes.
 6. **Nunca commitar** `.env*`, chaves (`service_role`), fotos de comprovantes ou holerites reais. Fixtures de teste são sintéticas.

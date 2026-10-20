@@ -8,7 +8,7 @@
 
 ## Objetivos
 
-1. Registrar batidas manualmente (principal) ou lendo a foto do comprovante (atalho).
+1. Registrar batidas lendo a foto do comprovante (principal), com registro manual como alternativa quando a leitura falha ou não há comprovante.
 2. Mostrar saldo do dia e do período de apuração (20 → 19) em tempo real.
 3. Estimar o salário líquido do dia 1º com base no saldo e nos descontos.
 4. Lembrar o horário de volta do almoço e de saída.

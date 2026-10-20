@@ -1,9 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
-import { createCompany, requestMagicLink } from "./onboarding";
+import { createCompany, openManualPunch, requestMagicLink } from "./onboarding";
 
 /** Bate o ponto pelo CTA na hora `time` de hoje e confere o rótulo derivado e o toast. */
 async function punchAt(page: Page, time: string, phrase: string, toast: string) {
-  await page.getByRole("button", { name: /Bater ponto/ }).click();
+  await openManualPunch(page);
   const sheet = page.getByRole("dialog", { name: "Bater ponto" });
   await sheet.getByLabel("Hora").fill(time);
   await expect(sheet).toContainText(`Vai entrar como ${phrase}`);
@@ -26,7 +26,7 @@ test("registra 4 batidas fora de ordem, com os rótulos pela ordem do dia, e rec
   await punchAt(page, "18:00", "saída", "Até amanhã! Saída às 18:00.");
   await punchAt(page, "12:00", "saída para o almoço", "Bom almoço! Saída às 12:00.");
 
-  await page.getByRole("button", { name: /Bater ponto/ }).click();
+  await openManualPunch(page);
   const sheet = page.getByRole("dialog", { name: "Bater ponto" });
   await sheet.getByLabel("Hora").fill("12:00");
   await expect(sheet.getByRole("alert")).toHaveText("Já tem uma batida às 12:00.");

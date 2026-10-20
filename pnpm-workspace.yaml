@@ -1,3 +1,6 @@
 packages:
   - apps/*
   - packages/*
+allowBuilds:
+  # Só o aviso do opencollective; nada a compilar.
+  tesseract.js: false

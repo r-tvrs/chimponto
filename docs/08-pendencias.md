@@ -172,3 +172,15 @@ Vindas do #12 (PWA). Comportamento atual mantido até decidir.
 - E2E offline do #12 pulado no WebKit (`test.skip` também no CI) e testa recarregar offline, não abrir o app do zero numa aba nova.
 - `maxAgeSeconds: 365 * 24 * 60 * 60` (`vite.config.ts`) e `CACHE_MAX_AGE_MS` (`main.tsx`) fazem a mesma conta de duração em unidades diferentes.
 - `offline.spec.ts` repete login, empresa e batida entre os dois testes; candidato a helper `punchAt(page, "08:30")`.
+
+Vindas do #13 (OCR). Comportamento atual mantido até decidir.
+
+- OCR real sem teste automatizado: os testes de tela mockam `readReceipt`, e o E2E só cobre o caminho manual (cancelar a câmera). Validar com comprovantes reais no aparelho; correção prevista: fixture sintética em fonte matricial (`docs/06`) num teste de integração do Tesseract.
+- Worker e core do Tesseract vêm do jsDelivr (`CacheFirst` no service worker); o idioma `por` fica no IndexedDB do Tesseract. A primeira leitura precisa de conexão, e não foi verificado se o worker criado por blob passa pelo service worker no iOS. Sem rede e sem cache, a leitura falha e cai no manual. Correção prevista: hospedar worker, core e `por` no próprio app e incluí-los no precache.
+- Cancelar a câmera depende do evento `cancel` do `<input type="file">` (Chrome 113+, Safari 16.4+). Em navegador sem ele, fechar a câmera não abre o manual; o usuário toca de novo no CTA e não tem saída para o manual. Correção prevista: link "Registrar manualmente" fixo abaixo do CTA.
+- Pré-processamento (cinza, contraste 1,5x, lado maior 1600 px) sem calibrar com fotos reais.
+- Cancelar "Tirar outra foto" no sheet "Confira a leitura" descarta a leitura e abre o manual em branco com a hora atual (`today.tsx`, listener `cancel` sempre chama `setSheet({})`). Correção prevista: no cancel, manter o sheet aberto se já houver leitura.
+- "Registrar manualmente" durante a leitura ignora o resultado, mas o OCR segue rodando em segundo plano (`readReceipt` não é cancelável). Correção prevista: encerrar o worker na desmontagem do `ReceiptSheet`.
+- Câmera indisponível depende do `<input type="file">` cair no seletor de arquivos; sem teste para esse caso.
+- `docs/06` cita fixtures em `apps/web/src/features/ocr/__fixtures__/`; o código usa `apps/web/src/ocr/` com fixtures inline no teste. `MAX_DAYS_AGO = 60` fixo em `parse-receipt.ts`.
+- Refatorações (review do #13): ternário `editing / reading / manual` repetido em `punch-sheet.tsx` (título, rótulos, borda, botão, toast, `source`), candidato a objeto de modo ou `ReceiptConfirmSheet`; `SheetTarget` é união sem discriminante (permite `editing` + `reading`), candidata a `kind`; classe da borda banana duplicada nos inputs de data e hora; nomes `n` (contador de remontagem) e `px`; `UNREADABLE` atravessa `today.tsx` só para virar prop `message`; botão `ghost` + `underline` em vez de variante de link.

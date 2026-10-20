@@ -1,6 +1,6 @@
 import { type CompanyRules, companyRulesSchema, fromLocal, toLocalDate } from "@chimponto/domain";
 import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,6 +18,17 @@ import {
   type UpsertPunchResult,
 } from "@/punches/punches";
 import { TodayScreen } from "./today";
+
+// O Tesseract não roda no jsdom; cada teste diz o que a "foto" contém.
+const ocr = vi.hoisted(() => ({ text: "", fail: false, hang: false }));
+vi.mock("@/ocr/read-receipt", () => ({
+  readReceipt: async (_photo: Blob, onProgress: (ratio: number) => void) => {
+    onProgress(0.5);
+    if (ocr.hang) return new Promise<string>(() => {});
+    if (ocr.fail) throw new Error("ocr failed");
+    return ocr.text;
+  },
+}));
 
 // O perfil vem direto do Supabase; aqui só importa o avatar não quebrar.
 vi.mock("@/data/profile", () => ({ useProfile: () => ({ data: { display_name: "Marina" } }) }));
@@ -145,11 +156,31 @@ async function rows() {
     .map((row) => row.getAttribute("aria-label"));
 }
 
-/** Abre o sheet pelo CTA, que só habilita depois de carregar as batidas e a fila. */
-async function openPunchSheet(user: ReturnType<typeof userEvent.setup>) {
+/** Abre a câmera pelo CTA, que só habilita depois de carregar as batidas e a fila. */
+async function openCamera(user: ReturnType<typeof userEvent.setup>) {
   const cta = await screen.findByRole("button", { name: /Bater ponto/ });
   await vi.waitFor(() => expect(cta).toBeEnabled());
   await user.click(cta);
+}
+
+/** Cancela a câmera, como fechar o seletor de foto do aparelho. */
+async function cancelCamera() {
+  fireEvent(screen.getByLabelText("Foto do comprovante"), new Event("cancel"));
+  await screen.findByRole("dialog");
+}
+
+/** Abre o sheet manual: CTA abre a câmera, e cancelar cai no registro manual. */
+async function openPunchSheet(user: ReturnType<typeof userEvent.setup>) {
+  await openCamera(user);
+  await cancelCamera();
+}
+
+/** Tira a "foto" do comprovante, com o texto que o OCR vai ler. */
+function takePhoto(text: string) {
+  ocr.text = text;
+  const photo = new File(["fake"], "comprovante.jpg", { type: "image/jpeg" });
+  // Com um sheet aberto, o Radix tira os eventos de ponteiro do resto da página.
+  fireEvent.change(screen.getByLabelText("Foto do comprovante"), { target: { files: [photo] } });
 }
 
 async function setTime(user: ReturnType<typeof userEvent.setup>, time: string) {
@@ -166,6 +197,9 @@ beforeEach(() => {
 afterEach(async () => {
   vi.useRealTimers();
   onlineManager.setOnline(true);
+  ocr.text = "";
+  ocr.fail = false;
+  ocr.hang = false;
   cleanup();
   await Promise.all(dbs.splice(0).map((db) => db.delete()));
 });
@@ -293,6 +327,7 @@ describe("Próximo card", () => {
     );
 
     await user.click(await screen.findByRole("button", { name: /Dia completo · 4 de 4 batidas/ }));
+    await cancelCamera();
 
     const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
     expect(sheet).toHaveTextContent("Vai entrar como saída extra");
@@ -463,6 +498,7 @@ describe("Bater ponto sheet", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await user.click(await screen.findByRole("button", { name: "Bater Saída" }));
+    await cancelCamera();
 
     const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
     expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
@@ -602,7 +638,7 @@ describe("offline", () => {
     await rows();
     setOnline(false);
 
-    await user.click(screen.getByRole("button", { name: /Bater ponto/ }));
+    await openPunchSheet(user);
     await user.click(screen.getByRole("button", { name: "Salvar batida" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent(
@@ -643,7 +679,7 @@ describe("offline", () => {
     const user = renderToday(punches);
     await rows();
     setOnline(false);
-    await user.click(screen.getByRole("button", { name: /Bater ponto/ }));
+    await openPunchSheet(user);
     await user.click(screen.getByRole("button", { name: "Salvar batida" }));
     await screen.findByText("Offline · 1 na fila");
 
@@ -733,7 +769,7 @@ describe("punch in conflict", () => {
     const user = renderToday(punches);
     await rows();
     setOnline(false);
-    await user.click(screen.getByRole("button", { name: /Bater ponto/ }));
+    await openPunchSheet(user);
     await user.click(screen.getByRole("button", { name: "Salvar batida" }));
     await screen.findByText("Offline · 1 na fila");
     await punches.upsert({ ...punch("14:28", "other-device"), deletedAt: null });
@@ -774,7 +810,7 @@ describe("punch in conflict", () => {
     const user = renderToday(punches);
     await rows();
     setOnline(false);
-    await user.click(screen.getByRole("button", { name: /Bater ponto/ }));
+    await openPunchSheet(user);
     await user.click(screen.getByRole("button", { name: "Salvar batida" }));
     await screen.findByText("Offline · 1 na fila");
     punches.failNextWith("rejected");
@@ -817,3 +853,127 @@ describe("punch in conflict", () => {
     expect(await rows()).toContain("Editar Volta almoço, 14:29");
   });
 });
+
+describe("punching from the receipt photo", () => {
+  it("reads the receipt and saves the punch as read, with source ocr", async () => {
+    const punches = fakePunches([punch("09:02"), punch("13:28")]);
+    const user = renderToday(punches);
+
+    await openCamera(user);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    takePhoto("COMPROVANTE\nPIS:000000000000 16/10/2026 14:19\nNOME");
+
+    const sheet = await screen.findByRole("dialog", { name: "Confira a leitura" });
+    expect(within(sheet).getByLabelText("Data lida")).toHaveValue(TODAY);
+    expect(within(sheet).getByLabelText("Hora lida")).toHaveValue("14:19");
+    expect(sheet).toHaveTextContent("Vai entrar como volta do almoço");
+
+    await user.click(within(sheet).getByRole("button", { name: "Confirmar batida" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Batida das 14:19 lida do comprovante.",
+    );
+    await vi.waitFor(() => expect(punches.upsert).toHaveBeenCalled());
+    expect(punches.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ punchedAt: fromLocal(TODAY, "14:19"), source: "ocr" }),
+    );
+  });
+
+  it("lets the read time be corrected before confirming", async () => {
+    const punches = fakePunches([punch("09:02"), punch("13:28")]);
+    const user = renderToday(punches);
+
+    await openCamera(user);
+    takePhoto("PIS:0 16/10/2026 14:19");
+    const field = within(
+      await screen.findByRole("dialog", { name: "Confira a leitura" }),
+    ).getByLabelText("Hora lida");
+    await user.clear(field);
+    await user.type(field, "14:21");
+    await user.click(screen.getByRole("button", { name: "Confirmar batida" }));
+
+    await vi.waitFor(() =>
+      expect(punches.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ punchedAt: fromLocal(TODAY, "14:21"), source: "ocr" }),
+      ),
+    );
+  });
+
+  it("falls back to the manual sheet with a message when the receipt can't be read", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    takePhoto("borrado, sem data");
+
+    const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
+    expect(sheet).toHaveTextContent("Não deu para ler o comprovante. Preencha a hora.");
+    expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
+  });
+
+  it("falls back to the manual sheet when the OCR itself fails", async () => {
+    ocr.fail = true;
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    takePhoto("");
+
+    expect(await screen.findByRole("dialog", { name: "Bater ponto" })).toHaveTextContent(
+      "Não deu para ler o comprovante.",
+    );
+  });
+
+  it("lets the punch be registered manually while the receipt is being read", async () => {
+    ocr.hang = true;
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    takePhoto("");
+    const reading = await screen.findByRole("dialog", { name: "Lendo comprovante" });
+    await user.click(within(reading).getByRole("button", { name: "Registrar manualmente" }));
+
+    const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
+    expect(sheet).not.toHaveTextContent("Não deu para ler");
+    expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
+  });
+
+  it("opens the manual sheet when the camera is canceled, with a way back to the photo", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openPunchSheet(user);
+
+    const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
+    expect(sheet).not.toHaveTextContent("Não deu para ler");
+    await takePhotoFrom(user, within(sheet).getByRole("button", { name: "Usar foto do comprovante" }));
+    expect(await screen.findByRole("dialog", { name: "Confira a leitura" })).toBeInTheDocument();
+  });
+
+  it("takes another photo from the confirmation", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    takePhoto("PIS:0 16/10/2026 12:00");
+    const sheet = await screen.findByRole("dialog", { name: "Confira a leitura" });
+    await takePhotoFrom(user, within(sheet).getByRole("button", { name: "Tirar outra foto" }), "PIS:0 16/10/2026 12:05");
+
+    await vi.waitFor(() => expect(screen.getByLabelText("Hora lida")).toHaveValue("12:05"));
+  });
+
+  it("keeps editing a punch manual", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await user.click(await screen.findByRole("button", { name: "Editar Entrada, 09:02" }));
+
+    const sheet = screen.getByRole("dialog", { name: "Editar batida" });
+    expect(within(sheet).queryByRole("button", { name: "Usar foto do comprovante" })).toBeNull();
+  });
+});
+
+/** Toca no botão que abre a câmera e tira a "foto". */
+async function takePhotoFrom(
+  user: ReturnType<typeof userEvent.setup>,
+  button: HTMLElement,
+  text = "PIS:0 16/10/2026 14:19",
+) {
+  await user.click(button);
+  takePhoto(text);
+}

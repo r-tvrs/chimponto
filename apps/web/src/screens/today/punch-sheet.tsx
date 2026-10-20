@@ -10,7 +10,7 @@ import {
   truncateToMinute,
 } from "@chimponto/domain";
 import { onlineManager } from "@tanstack/react-query";
-import { CircleCheck, Clock, CloudOff, Trash2, TriangleAlert } from "lucide-react";
+import { Camera, Check, CircleCheck, Clock, CloudOff, Trash2, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { v7 as uuidv7 } from "uuid";
 import { useCompanyRules } from "@/company/company";
@@ -22,18 +22,27 @@ import { Sheet } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { PUNCH_LABELS } from "@/punches/punch-labels";
 import { type Punch, type PunchWrite, usePunchesOn, useWritePunch } from "@/punches/punches";
+import type { ReceiptReading } from "./receipt-sheet";
 
 const OFFLINE_TOAST = "Salvo no aparelho. Sobe quando o sinal voltar.";
 
 /**
  * Sheet "Bater ponto" (handoff §2 com os ajustes de docs/07): data e hora pré-preenchidas, sem
  * escolha de tipo, só o rótulo derivado ao vivo. Com `editing`, edita ou exclui aquela batida.
+ * Com `reading`, é a "Confira a leitura" do comprovante (handoff §4): campos lidos com borda
+ * banana e `source = 'ocr'`. `message` explica por que caiu no manual; `onPhoto` abre a câmera.
  */
 export function PunchSheet({
   editing,
+  reading,
+  message,
+  onPhoto,
   onClose,
 }: {
   editing?: Punch | undefined;
+  reading?: ReceiptReading | undefined;
+  message?: string | undefined;
+  onPhoto?: (() => void) | undefined;
   onClose: () => void;
 }) {
   const rules = useCompanyRules();
@@ -42,8 +51,8 @@ export function PunchSheet({
   const [initialInstant] = useState(() => truncateToMinute(editing?.punchedAt ?? new Date()));
   // Um id por sheet: salvar de novo antes de a fila subir substitui a mesma batida.
   const [id] = useState(() => editing?.id ?? uuidv7());
-  const [date, setDate] = useState(toLocalDate(initialInstant));
-  const [time, setTime] = useState(toLocalTime(initialInstant));
+  const [date, setDate] = useState(reading?.date ?? toLocalDate(initialInstant));
+  const [time, setTime] = useState(reading?.time ?? toLocalTime(initialInstant));
   const [note, setNote] = useState(editing?.note ?? "");
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -72,12 +81,16 @@ export function PunchSheet({
       {
         id,
         punchedAt: at,
-        source: editing?.source ?? "manual",
+        source: editing?.source ?? (reading ? "ocr" : "manual"),
         note: note.trim() || null,
         updatedAt: new Date(),
         deletedAt: null,
       },
-      editing ? `Batida das ${time} salva.` : PUNCH_LABELS[preview.label].toast(time),
+      editing
+        ? `Batida das ${time} salva.`
+        : reading
+          ? `Batida das ${time} lida do comprovante.`
+          : PUNCH_LABELS[preview.label].toast(time),
     );
   }
 
@@ -91,28 +104,43 @@ export function PunchSheet({
     <Sheet
       open
       onOpenChange={(open) => !open && onClose()}
-      title={editing ? "Editar batida" : "Bater ponto"}
+      title={editing ? "Editar batida" : reading ? "Confira a leitura" : "Bater ponto"}
     >
       <form noValidate onSubmit={save} className="flex flex-col gap-3.5">
+        {message && (
+          <LiveWarning tone="warning" icon={TriangleAlert}>
+            {message}
+          </LiveWarning>
+        )}
         <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-2">
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold text-muted-foreground">Data</span>
+            <span className="text-xs font-bold text-muted-foreground">
+              {reading ? "Data lida" : "Data"}
+            </span>
             <Input
               type="date"
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-14 bg-background px-3 text-[15px] font-bold tabular-nums"
+              className={cn(
+                "h-14 bg-background px-3 text-[15px] font-bold tabular-nums",
+                reading && "border-2 border-banana",
+              )}
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold text-muted-foreground">Hora</span>
+            <span className="text-xs font-bold text-muted-foreground">
+              {reading ? "Hora lida" : "Hora"}
+            </span>
             <Input
               type="time"
               required
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="h-14 bg-background px-3 text-[22px] font-extrabold tabular-nums"
+              className={cn(
+                "h-14 bg-background px-3 text-[22px] font-extrabold tabular-nums",
+                reading && "border-2 border-banana",
+              )}
             />
           </label>
         </div>
@@ -167,8 +195,28 @@ export function PunchSheet({
           className="w-full"
           disabled={!preview || duplicate || saving}
         >
-          Salvar batida
+          {reading ? (
+            <>
+              <Check aria-hidden />
+              Confirmar batida
+            </>
+          ) : (
+            "Salvar batida"
+          )}
         </Button>
+
+        {!editing && onPhoto && (
+          <Button
+            type="button"
+            variant="ghost"
+            className={cn(!reading && "underline")}
+            disabled={saving}
+            onClick={onPhoto}
+          >
+            {!reading && <Camera aria-hidden />}
+            {reading ? "Tirar outra foto" : "Usar foto do comprovante"}
+          </Button>
+        )}
 
         {editing && (
           <Button
