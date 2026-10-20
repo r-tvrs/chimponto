@@ -17,6 +17,7 @@ import { CompanyScreen } from "./company";
 const auth: Auth = {
   state: { status: "signed_in", user: { id: "user-a", email: "marina@lumen.dev" } },
   requestMagicLink: async () => "sent",
+  verifyCode: async () => "signed_in",
   signOut: async () => "signed_out",
 };
 

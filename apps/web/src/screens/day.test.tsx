@@ -26,6 +26,7 @@ const DAY = "2026-10-14";
 const auth: Auth = {
   state: { status: "signed_in", user: { id: "user-a", email: "marina@lumen.dev" } },
   requestMagicLink: async () => "sent",
+  verifyCode: async () => "signed_in",
   signOut: async () => "signed_out",
 };
 

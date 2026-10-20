@@ -8,6 +8,7 @@ function renderLogin(overrides: Partial<Auth> = {}) {
   const auth: Auth = {
     state: { status: "signed_out", linkError: false },
     requestMagicLink: vi.fn(async () => "sent" as const),
+    verifyCode: vi.fn(async () => "signed_in" as const),
     signOut: vi.fn(async () => "signed_out" as const),
     ...overrides,
   };
@@ -98,5 +99,39 @@ describe("<LoginScreen>", () => {
     await userEvent.click(within(alert).getByRole("button", { name: "Tentar de novo" }));
 
     expect(screen.getByRole("button", { name: "Receber link mágico" })).toBeVisible();
+  });
+
+  it("signs in with the code from the e-mail, without leaving the app", async () => {
+    const auth = renderLogin();
+
+    const user = await askForLink("marina@lumen.dev");
+    await user.type(await screen.findByLabelText("Código do e-mail"), "123456");
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    expect(auth.verifyCode).toHaveBeenCalledWith("marina@lumen.dev", "123456");
+  });
+
+  it("flags a wrong or expired code and lets the user ask for another", async () => {
+    const auth = renderLogin({ verifyCode: vi.fn(async () => "invalid" as const) });
+
+    const user = await askForLink("marina@lumen.dev");
+    await user.type(await screen.findByLabelText("Código do e-mail"), "000000");
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    expect(await screen.findByLabelText("Código do e-mail")).toHaveAccessibleDescription(
+      "Código errado ou expirado. Confira ou peça outro.",
+    );
+    await user.click(screen.getByRole("button", { name: "Receber link mágico" }));
+    expect(auth.requestMagicLink).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows the generic error when the code can't be checked", async () => {
+    renderLogin({ verifyCode: vi.fn(async () => "failed" as const) });
+
+    const user = await askForLink("marina@lumen.dev");
+    await user.type(await screen.findByLabelText("Código do e-mail"), "123456");
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não deu para conferir o código");
   });
 });

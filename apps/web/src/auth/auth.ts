@@ -10,12 +10,17 @@ export type AuthState =
 
 export type MagicLinkResult = "sent" | "rate_limited" | "failed";
 
+/** `invalid`: código errado ou expirado. Com `signed_in`, a guarda de rotas sai do Login. */
+export type VerifyCodeResult = "signed_in" | "invalid" | "failed";
+
 /** `failed`: o SDK acusou erro. A sessão pode ter saído mesmo assim; se saiu, a guarda leva ao Login. */
 export type SignOutResult = "signed_out" | "failed";
 
 export type Auth = {
   state: AuthState;
   requestMagicLink: (email: string) => Promise<MagicLinkResult>;
+  /** Código de 6 dígitos do mesmo e-mail do link: entra sem sair do app instalado (iOS). */
+  verifyCode: (email: string, code: string) => Promise<VerifyCodeResult>;
   signOut: () => Promise<SignOutResult>;
 };
 

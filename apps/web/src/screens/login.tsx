@@ -1,6 +1,6 @@
-import { Mail } from "lucide-react";
+import { LogIn, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { type MagicLinkResult, useAuth } from "@/auth/auth";
+import { type MagicLinkResult, useAuth, type VerifyCodeResult } from "@/auth/auth";
 import { ErrorState } from "@/components/error-state";
 import { Mascote } from "@/components/mascote";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,24 @@ const FAILURES = {
   rate_limited: { title: "Muitos pedidos seguidos", message: "Espere um minuto e tente de novo." },
 };
 
+const CODE_FAILURE = {
+  title: "Não deu para conferir o código",
+  message: "Confira a conexão e tente de novo.",
+};
+
 export function LoginScreen() {
-  const { state, requestMagicLink } = useAuth();
+  const { state, requestMagicLink, verifyCode } = useAuth();
   const [linkErrorSeen, setLinkErrorSeen] = useState(false);
   const [email, setEmail] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [failure, setFailure] = useState<Exclude<MagicLinkResult, "sent"> | null>(null);
+  const [code, setCode] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [codeResult, setCodeResult] = useState<Exclude<VerifyCodeResult, "signed_in"> | null>(
+    null,
+  );
 
   async function send(address: string) {
     setFailure(null);
@@ -29,6 +39,17 @@ export function LoginScreen() {
     setSending(false);
     if (result === "sent") setSentTo(address);
     else setFailure(result);
+  }
+
+  async function onCheckCode(event: FormEvent) {
+    event.preventDefault();
+    if (!sentTo) return;
+    setCodeResult(null);
+    setChecking(true);
+    const result = await verifyCode(sentTo, code.trim());
+    setChecking(false);
+    // `signed_in`: a guarda de rotas troca de tela; aqui só sobram os erros.
+    if (result !== "signed_in") setCodeResult(result);
   }
 
   function onSubmit(event: FormEvent) {
@@ -50,6 +71,10 @@ export function LoginScreen() {
         onRetry={() => setLinkErrorSeen(true)}
       />
     );
+  }
+
+  if (codeResult === "failed") {
+    return <ErrorState {...CODE_FAILURE} onRetry={() => setCodeResult(null)} />;
   }
 
   if (failure) {
@@ -88,7 +113,7 @@ export function LoginScreen() {
         </Button>
         {sentTo ? (
           <p role="status" className="text-center text-xs leading-[1.4] font-semibold">
-            Link mágico enviado para {sentTo}. Abra o e-mail neste aparelho.
+            Link mágico enviado para {sentTo}. Digite o código do e-mail ou abra o link.
           </p>
         ) : (
           <p className="text-center text-xs leading-[1.4] font-medium text-muted-foreground">
@@ -96,6 +121,30 @@ export function LoginScreen() {
           </p>
         )}
       </form>
+      {sentTo && (
+        <form noValidate onSubmit={onCheckCode} className="flex flex-col gap-2.5 pt-4">
+          <Input
+            aria-label="Código do e-mail"
+            placeholder="000000"
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            aria-invalid={codeResult === "invalid"}
+            aria-describedby={codeResult === "invalid" ? "code-error" : undefined}
+          />
+          {codeResult === "invalid" && (
+            <p id="code-error" className="text-[12.5px] font-bold text-negative">
+              Código errado ou expirado. Confira ou peça outro.
+            </p>
+          )}
+          <Button type="submit" size="lg" className="w-full" disabled={checking}>
+            <LogIn />
+            {checking ? "Entrando…" : "Entrar"}
+          </Button>
+        </form>
+      )}
     </main>
   );
 }

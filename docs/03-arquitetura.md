@@ -88,6 +88,7 @@ Detalhes da implementação (`apps/web/src/punches/`):
 - Senha do cofre é separada e nunca sai do navegador (ver `05-seguranca.md`).
 - Sessão gerenciada pelo SDK do Supabase.
 - Fluxo implícito (tokens no fragmento da URL), não PKCE: o link mágico entra mesmo aberto num navegador diferente do que o pediu.
+- O mesmo e-mail traz um código de 6 dígitos (`verifyOtp`, tipo `email`), digitado na tela de Login. No iOS, o app instalado na tela inicial não divide sessão com o navegador, e o link abre no navegador: o código é o caminho para entrar no app instalado. Template em `supabase/templates/magic-link.html` (local); em produção, o mesmo HTML nos templates "Magic Link" e "Confirm signup" do painel.
 
 ### D6 — Multiusuário
 - Todo usuário pertence a uma empresa (`company_members`, um por usuário na v1).

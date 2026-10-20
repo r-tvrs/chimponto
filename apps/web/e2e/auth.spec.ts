@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { loginCodeFor } from "./mailpit";
 import { createCompany, requestMagicLink } from "./onboarding";
 
 test("entra por link mágico, mantém a sessão, navega pelas abas e sai", async ({
@@ -61,4 +62,25 @@ test("link mágico já usado mostra o erro e volta ao login", async ({ page }, t
   await expect(alert.getByRole("heading")).toHaveText("Esse link não vale mais");
   await alert.getByRole("button", { name: "Tentar de novo" }).click();
   await expect(page.getByRole("button", { name: "Receber link mágico" })).toBeVisible();
+});
+
+test("entra pelo código do e-mail, sem sair do app", async ({ page }, testInfo) => {
+  const email = `codigo+${Date.now()}.${testInfo.workerIndex}@example.com`;
+
+  // Pede o e-mail e não abre o link: lê só o código.
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByRole("button", { name: "Receber link mágico" }).click();
+  const code = await loginCodeFor(email);
+
+  const field = page.getByLabel("Código do e-mail");
+  await field.fill(code === "000000" ? "111111" : "000000");
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(field).toHaveAccessibleDescription(
+    "Código errado ou expirado. Confira ou peça outro.",
+  );
+
+  await field.fill(code);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await createCompany(page, "Lumen Software");
 });

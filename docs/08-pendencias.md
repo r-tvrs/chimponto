@@ -184,3 +184,14 @@ Vindas do #13 (OCR). Comportamento atual mantido até decidir.
 - Câmera indisponível depende do `<input type="file">` cair no seletor de arquivos; sem teste para esse caso.
 - `docs/06` cita fixtures em `apps/web/src/features/ocr/__fixtures__/`; o código usa `apps/web/src/ocr/` com fixtures inline no teste. `MAX_DAYS_AGO = 60` fixo em `parse-receipt.ts`.
 - Refatorações (review do #13): ternário `editing / reading / manual` repetido em `punch-sheet.tsx` (título, rótulos, borda, botão, toast, `source`), candidato a objeto de modo ou `ReceiptConfirmSheet`; `SheetTarget` é união sem discriminante (permite `editing` + `reading`), candidata a `kind`; classe da borda banana duplicada nos inputs de data e hora; nomes `n` (contador de remontagem) e `px`; `UNREADABLE` atravessa `today.tsx` só para virar prop `message`; botão `ghost` + `underline` em vez de variante de link.
+
+Vindas do #14 (login por código).
+
+- Template do e-mail em produção é manual: copiar `supabase/templates/magic-link.html` para "Magic Link" e "Confirm signup" no painel do Supabase. Sem isso, o e-mail de produção chega sem o código.
+- Código errado e falha de rede se distinguem pelo status HTTP do GoTrue (400/403 = código inválido). Outro status de erro do código vira "Não deu para conferir o código".
+- Pedir outro código mantém o que foi digitado no campo do código.
+- 429 (muitas tentativas) e possível 422 (código malformado) caem em "Não deu para conferir o código", que sugere falha de conexão. Correção prevista: mapear por `error.code` (`otp_expired`, `over_request_rate_limit`) em vez do status.
+- Editar o e-mail depois de enviar: o código continua conferido contra o endereço enviado (`sentTo`) e o status mostra o antigo. Visível e recuperável pedindo outro.
+- Depois do envio, o botão continua "Receber link mágico", embora o e-mail fale em código; é ele que serve para "pedir outro".
+- Login pelo código não validado num iPhone real (WebKit E2E só no CI). Sem E2E de código expirado nem de "pedir outro" após erro.
+- Refatorações (review do #14): fake de `Auth` copiado em 7 testes de tela (`verifyCode: async () => "signed_in"`), candidato a helper `fakeAuth(overrides)`; `login.tsx` junta pedir link e conferir código (9 `useState`, duas trilhas de erro), candidato a `CodeForm`; microcopy nova do login por código não conferida contra o handoff nem registrada em `docs/07`.

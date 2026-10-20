@@ -245,6 +245,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Código e link no mesmo e-mail: o código entra no app instalado no iOS (docs/03).
+# Em produção, o mesmo HTML vai nos templates do painel do Supabase.
+[auth.email.template.magic_link]
+subject = "Seu código do Chimponto"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.email.template.confirmation]
+subject = "Seu código do Chimponto"
+content_path = "./supabase/templates/magic-link.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
