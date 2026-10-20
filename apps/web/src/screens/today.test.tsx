@@ -30,6 +30,20 @@ vi.mock("@/ocr/read-receipt", () => ({
   },
 }));
 
+// jsdom não tem câmera nem canvas: cada teste diz se a câmera abre; a "foto" é um blob qualquer.
+const camera = vi.hoisted(() => ({ denied: false, tracks: [] as { stop: () => void }[] }));
+const getUserMedia = vi.fn(async () => {
+  if (camera.denied) throw new DOMException("denied", "NotAllowedError");
+  const track = { stop: vi.fn() };
+  camera.tracks.push(track);
+  return { getTracks: () => [track] } as unknown as MediaStream;
+});
+Object.defineProperty(navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
+HTMLCanvasElement.prototype.getContext = (() => ({ drawImage() {} })) as never;
+HTMLCanvasElement.prototype.toBlob = function (callback: BlobCallback) {
+  callback(new Blob(["fake"], { type: "image/jpeg" }));
+};
+
 // O perfil vem direto do Supabase; aqui só importa o avatar não quebrar.
 vi.mock("@/data/profile", () => ({ useProfile: () => ({ data: { display_name: "Marina" } }) }));
 
@@ -164,10 +178,11 @@ async function openCamera(user: ReturnType<typeof userEvent.setup>) {
   await user.click(cta);
 }
 
-/** Cancela a câmera, como fechar o seletor de foto do aparelho. */
+/** Sai da câmera pelo "Registrar manualmente". */
 async function cancelCamera() {
-  fireEvent(screen.getByLabelText("Foto do comprovante"), new Event("cancel"));
-  await screen.findByRole("dialog");
+  const sheet = await screen.findByRole("dialog", { name: "Foto do comprovante" });
+  fireEvent.click(within(sheet).getByRole("button", { name: "Registrar manualmente" }));
+  await screen.findByRole("dialog", { name: "Bater ponto" });
 }
 
 /** Abre o sheet manual: CTA abre a câmera, e cancelar cai no registro manual. */
@@ -177,11 +192,11 @@ async function openPunchSheet(user: ReturnType<typeof userEvent.setup>) {
 }
 
 /** Tira a "foto" do comprovante, com o texto que o OCR vai ler. */
-function takePhoto(text: string) {
+async function takePhoto(text: string) {
   ocr.text = text;
-  const photo = new File(["fake"], "comprovante.jpg", { type: "image/jpeg" });
-  // Com um sheet aberto, o Radix tira os eventos de ponteiro do resto da página.
-  fireEvent.change(screen.getByLabelText("Foto do comprovante"), { target: { files: [photo] } });
+  const capture = await screen.findByRole("button", { name: "Capturar" });
+  await vi.waitFor(() => expect(capture).toBeEnabled());
+  fireEvent.click(capture);
 }
 
 async function setTime(user: ReturnType<typeof userEvent.setup>, time: string) {
@@ -201,6 +216,9 @@ afterEach(async () => {
   ocr.text = "";
   ocr.fail = false;
   ocr.hang = false;
+  camera.denied = false;
+  camera.tracks = [];
+  getUserMedia.mockClear();
   cleanup();
   await Promise.all(dbs.splice(0).map((db) => db.delete()));
 });
@@ -861,8 +879,8 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(punches);
 
     await openCamera(user);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    takePhoto("COMPROVANTE\nPIS:000000000000 16/10/2026 14:19\nNOME");
+    expect(await screen.findByRole("dialog", { name: "Foto do comprovante" })).toBeInTheDocument();
+    await takePhoto("COMPROVANTE\nPIS:000000000000 16/10/2026 14:19\nNOME");
 
     const sheet = await screen.findByRole("dialog", { name: "Confira a leitura" });
     expect(within(sheet).getByLabelText("Data lida")).toHaveValue(TODAY);
@@ -885,7 +903,7 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(punches);
 
     await openCamera(user);
-    takePhoto("PIS:0 16/10/2026 14:19");
+    await takePhoto("PIS:0 16/10/2026 14:19");
     const field = within(
       await screen.findByRole("dialog", { name: "Confira a leitura" }),
     ).getByLabelText("Hora lida");
@@ -904,7 +922,7 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await openCamera(user);
-    takePhoto("borrado, sem data");
+    await takePhoto("borrado, sem data");
 
     const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
     expect(sheet).toHaveTextContent("Não deu para ler o comprovante. Preencha a hora.");
@@ -916,7 +934,7 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await openCamera(user);
-    takePhoto("");
+    await takePhoto("");
 
     expect(await screen.findByRole("dialog", { name: "Bater ponto" })).toHaveTextContent(
       "Não deu para ler o comprovante.",
@@ -928,7 +946,7 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await openCamera(user);
-    takePhoto("");
+    await takePhoto("");
     const reading = await screen.findByRole("dialog", { name: "Lendo comprovante" });
     await user.click(within(reading).getByRole("button", { name: "Registrar manualmente" }));
 
@@ -944,7 +962,10 @@ describe("punching from the receipt photo", () => {
 
     const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
     expect(sheet).not.toHaveTextContent("Não deu para ler");
-    await takePhotoFrom(user, within(sheet).getByRole("button", { name: "Usar foto do comprovante" }));
+    await takePhotoFrom(
+      user,
+      within(sheet).getByRole("button", { name: "Usar foto do comprovante" }),
+    );
     expect(await screen.findByRole("dialog", { name: "Confira a leitura" })).toBeInTheDocument();
   });
 
@@ -952,11 +973,71 @@ describe("punching from the receipt photo", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await openCamera(user);
-    takePhoto("PIS:0 16/10/2026 12:00");
+    await takePhoto("PIS:0 16/10/2026 12:00");
     const sheet = await screen.findByRole("dialog", { name: "Confira a leitura" });
-    await takePhotoFrom(user, within(sheet).getByRole("button", { name: "Tirar outra foto" }), "PIS:0 16/10/2026 12:05");
+    await takePhotoFrom(
+      user,
+      within(sheet).getByRole("button", { name: "Tirar outra foto" }),
+      "PIS:0 16/10/2026 12:05",
+    );
 
     await vi.waitFor(() => expect(screen.getByLabelText("Hora lida")).toHaveValue("12:05"));
+  });
+
+  it("opens the back camera inside the app and turns it off when closed", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    const sheet = await screen.findByRole("dialog", { name: "Foto do comprovante" });
+    await vi.waitFor(() =>
+      expect(within(sheet).getByRole("button", { name: "Capturar" })).toBeEnabled(),
+    );
+    expect(getUserMedia).toHaveBeenCalledWith({
+      video: { facingMode: "environment" },
+      audio: false,
+    });
+
+    fireEvent.click(within(sheet).getByRole("button", { name: "Fechar" }));
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(camera.tracks[0]!.stop).toHaveBeenCalled();
+  });
+
+  it("falls back to the manual sheet when the camera is denied", async () => {
+    camera.denied = true;
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+
+    const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
+    expect(sheet).toHaveTextContent("Não deu para abrir a câmera. Preencha a hora.");
+    expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
+  });
+
+  it("turns the camera off on capture", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+
+    await openCamera(user);
+    await takePhoto("PIS:0 16/10/2026 14:19");
+
+    expect(await screen.findByRole("dialog", { name: "Confira a leitura" })).toBeInTheDocument();
+    expect(camera.tracks[0]!.stop).toHaveBeenCalled();
+  });
+
+  it("turns the camera off in the background and back on when the app returns", async () => {
+    const user = renderToday(fakePunches([punch("09:02")]));
+    await openCamera(user);
+    await vi.waitFor(() => expect(camera.tracks).toHaveLength(1));
+
+    const setVisibility = (state: DocumentVisibilityState) => {
+      Object.defineProperty(document, "visibilityState", { value: state, configurable: true });
+      fireEvent(document, new Event("visibilitychange"));
+    };
+    setVisibility("hidden");
+    expect(camera.tracks[0]!.stop).toHaveBeenCalled();
+    setVisibility("visible");
+
+    await vi.waitFor(() => expect(camera.tracks).toHaveLength(2));
+    expect(screen.getByRole("button", { name: "Capturar" })).toBeInTheDocument();
   });
 
   it("keeps editing a punch manual", async () => {
@@ -976,5 +1057,5 @@ async function takePhotoFrom(
   text = "PIS:0 16/10/2026 14:19",
 ) {
   await user.click(button);
-  takePhoto(text);
+  await takePhoto(text);
 }

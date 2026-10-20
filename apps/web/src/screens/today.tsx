@@ -1,5 +1,5 @@
 import { daySlots, formatLongDate, summarizeDay, toLocalDate } from "@chimponto/domain";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useSignedInUser } from "@/auth/auth";
 import { useCompanyRules } from "@/company/company";
 import { Avatar } from "@/components/avatar";
@@ -10,6 +10,7 @@ import { useNow } from "@/lib/use-now";
 import { useOnline } from "@/lib/use-online";
 import { useOutbox } from "@/punches/outbox";
 import { conflictsOf, type Punch, usePunchesOn, useQueuedPunches } from "@/punches/punches";
+import { CameraSheet } from "./today/camera-sheet";
 import { ConflictAlerts } from "./today/conflict-alerts";
 import { DayAlerts } from "./today/day-alerts";
 import { DayTiles } from "./today/day-tiles";
@@ -23,14 +24,16 @@ import { type ReceiptReading, ReceiptSheet } from "./today/receipt-sheet";
 import { SyncPill } from "./today/sync-pill";
 
 /**
- * Sheet aberto: lendo a foto, a nova batida (manual, ou lida do comprovante) ou a edição de uma
+ * Sheet aberto: a câmera, lendo a foto, a nova batida (manual, ou lida do comprovante) ou a edição de uma
  * feita. `n` remonta o sheet a cada foto, para os campos partirem da leitura nova.
  */
 type SheetTarget =
-  | { photo: File; n: number }
+  | { camera: true }
+  | { photo: Blob; n: number }
   | { editing?: Punch; reading?: ReceiptReading; message?: string; n?: number };
 
 const UNREADABLE = "Não deu para ler o comprovante. Preencha a hora.";
+const NO_CAMERA = "Não deu para abrir a câmera. Preencha a hora.";
 
 export function TodayScreen() {
   const user = useSignedInUser();
@@ -44,19 +47,10 @@ export function TodayScreen() {
   const queue = useQueuedPunches() ?? [];
   const conflicts = conflictsOf(queue);
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
-  const camera = useRef<HTMLInputElement>(null);
   const photos = useRef(0);
 
-  // Cancelar a câmera cai no registro manual (o React não expõe `cancel` em inputs).
-  useEffect(() => {
-    const input = camera.current;
-    const toManual = () => setSheet({});
-    input?.addEventListener("cancel", toManual);
-    return () => input?.removeEventListener("cancel", toManual);
-  });
-
   /** Bater ponto abre a câmera traseira (docs/06); a foto nunca é obrigatória. */
-  const openCamera = () => camera.current?.click();
+  const openCamera = () => setSheet({ camera: true });
 
   if (punches.isError) {
     return (
@@ -110,22 +104,15 @@ export function TodayScreen() {
 
       <PunchCta summary={summary} done={done} total={slots.length} onPunch={openCamera} />
 
-      <input
-        ref={camera}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        aria-label="Foto do comprovante"
-        hidden
-        onChange={(e) => {
-          const photo = e.target.files?.[0];
-          e.target.value = "";
-          if (photo) setSheet({ photo, n: ++photos.current });
-        }}
-      />
-
       {sheet &&
-        ("photo" in sheet ? (
+        ("camera" in sheet ? (
+          <CameraSheet
+            onPhoto={(photo) => setSheet({ photo, n: ++photos.current })}
+            onDenied={() => setSheet({ message: NO_CAMERA, n: ++photos.current })}
+            onManual={() => setSheet({ n: ++photos.current })}
+            onClose={() => setSheet(null)}
+          />
+        ) : "photo" in sheet ? (
           <ReceiptSheet
             key={sheet.n}
             photo={sheet.photo}

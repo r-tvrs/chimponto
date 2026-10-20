@@ -32,7 +32,7 @@ O dado necessário está na linha `PIS:... dd/mm/aaaa hh:mm`.
 ## Fluxo
 
 1. Usuário toca "Bater ponto": a câmera abre direto. O sheet oferece "Registrar manualmente" como alternativa.
-2. Captura via `<input type="file" accept="image/*" capture="environment">`.
+2. Captura dentro do app (#15): sheet com `getUserMedia({ video: { facingMode: "environment" } })` num `<video>` e botão "Capturar", que tira o frame num canvas. As tracks desligam ao fechar, ao capturar e em segundo plano (`visibilitychange`), e religam ao voltar. Câmera negada ou indisponível abre o manual com o aviso "Não deu para abrir a câmera. Preencha a hora.". O `<input capture>` foi descartado: no iOS instalado abre a câmera do sistema com a tela preta.
 3. Pré-processamento em canvas: redimensionar (lado maior ~1600 px), escala de cinza, aumento de contraste.
 4. Tesseract.js (`por`), worker e dados de idioma carregados sob demanda e cacheados pelo Service Worker.
 5. Extração:

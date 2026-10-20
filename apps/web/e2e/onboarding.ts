@@ -18,8 +18,20 @@ export async function createCompany(page: Page, name: string) {
   await expect(page.getByRole("heading", { name: "Hoje", exact: true })).toBeVisible();
 }
 
-/** Abre o sheet manual: o CTA abre a câmera, e cancelá-la cai no registro manual (docs/06). */
+/**
+ * Abre o sheet manual: o CTA abre a câmera e "Registrar manualmente" cai no registro manual
+ * (docs/06). Sem permissão de câmera no Playwright, ela já cai sozinha no manual.
+ */
 export async function openManualPunch(page: Page, cta: RegExp = /Bater ponto/) {
   await page.getByRole("button", { name: cta }).click();
-  await page.getByLabel("Foto do comprovante").dispatchEvent("cancel");
+  const manual = page.getByRole("dialog", { name: /Bater ponto/ });
+  const camera = page.getByRole("dialog", { name: "Foto do comprovante" });
+  await expect(manual.or(camera)).toBeVisible();
+  if (await camera.isVisible()) {
+    await camera
+      .getByRole("button", { name: "Registrar manualmente" })
+      .click({ timeout: 1000 })
+      .catch(() => {}); // a câmera pode cair no manual sozinha entre o isVisible e o clique
+  }
+  await expect(manual).toBeVisible();
 }
