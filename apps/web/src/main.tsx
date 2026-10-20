@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { onlineManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -20,6 +20,8 @@ import { supabasePunches } from "./punches/supabase-punches";
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 initTheme();
+// O onlineManager começa online e só reage a eventos; ao abrir já sem rede, ele precisa saber.
+onlineManager.setOnline(navigator.onLine);
 
 const db = new OfflineDb();
 const outbox = createOutbox(db);

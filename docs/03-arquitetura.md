@@ -6,6 +6,7 @@
 |---|---|
 | Repositório | Monorepo pnpm: `apps/web`, `packages/domain`, `supabase/` |
 | Frontend | React + Vite + TypeScript, PWA (`vite-plugin-pwa`) |
+| Service worker | `vite-plugin-pwa` (`generateSW`, `autoUpdate`): precache do app shell, mascotes e ícones; fontes do Google em cache `CacheFirst` na primeira visita. Outbox e cache de leitura ficam no IndexedDB, fora do SW, e sobrevivem à atualização |
 | Roteamento | React Router (modo data) |
 | Estado do servidor | TanStack Query |
 | Estado do cliente | Zustand — apenas estado do cofre (chave em memória, bloqueado/desbloqueado) |

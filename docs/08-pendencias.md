@@ -46,7 +46,7 @@ Vindas da review do #6 (offline). Comportamento atual mantido até decidir.
 | 9 | Conexão caiu logo depois do último envio: o recarregamento das batidas fica pausado e os itens já aceitos só saem da fila quando a conexão volta | A pill conta como "na fila" batidas que já estão no servidor, até voltar o sinal | `createPunchSync`, pill de sync |
 | 10 | Sessão expirada (401) é tratada como falha de rede | Nova tentativa a cada 1 min, sem fim, até o usuário entrar de novo | `supabasePunches.upsert`, sincronizador |
 | 11 | "Cache de leitura limpo ao sair" (D3) não tem teste | Funciona pelo `queryClient.clear()` do provider de auth, que o persister acompanha | `supabase-auth-provider.tsx` |
-| 12 | Abrir o app já sem rede: o `onlineManager` do TanStack v5 começa online e só muda com eventos | Banner, pill "Offline ·" e toast offline só aparecem depois de um evento `offline`; iniciar pelo `navigator.onLine` resolve | #12 (PWA que abre sem conexão) |
+| 12 | Abrir o app já sem rede: o `onlineManager` do TanStack v5 começa online e só muda com eventos | Banner, pill "Offline ·" e toast offline só aparecem depois de um evento `offline`; **Resolvido no #12**: `main.tsx` inicia o `onlineManager` por `navigator.onLine` | #12 (PWA que abre sem conexão) |
 
 Refatorações apontadas em todas as rodadas da review do #6 (sem efeito no comportamento):
 
@@ -164,3 +164,11 @@ Vindas do #10 (Ajustes). Comportamento atual mantido até decidir.
 - Preencher `packages/domain/src/tax-tables/2026.ts` (INSS, IRRF, dedução por dependente, desconto simplificado, redutor Lei 15.270/2025) a partir de fonte oficial.
 - Escolher biblioteca Web Push compatível com Deno para a Edge Function.
 
+
+Vindas do #12 (PWA). Comportamento atual mantido até decidir.
+
+- Fontes (Fredoka, Manrope) só têm cache de runtime `CacheFirst`, não precache: abrindo offline antes de uma segunda visita online, o texto sai na fonte de fallback. Correção prevista: hospedar os woff2 e incluí-los no `globPatterns`.
+- Atualização do service worker sem teste: a outbox e o cache de leitura sobrevivem por desenho (o SW não toca no IndexedDB), mas nenhum teste cobre a atualização.
+- E2E offline do #12 pulado no WebKit (`test.skip` também no CI) e testa recarregar offline, não abrir o app do zero numa aba nova.
+- `maxAgeSeconds: 365 * 24 * 60 * 60` (`vite.config.ts`) e `CACHE_MAX_AGE_MS` (`main.tsx`) fazem a mesma conta de duração em unidades diferentes.
+- `offline.spec.ts` repete login, empresa e batida entre os dois testes; candidato a helper `punchAt(page, "08:30")`.

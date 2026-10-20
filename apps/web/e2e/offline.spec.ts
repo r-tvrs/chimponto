@@ -39,3 +39,30 @@ test("bate o ponto sem sinal, guarda na fila e sobe quando a conexão volta", as
   await page.reload();
   await expect(batidas.getByRole("button", { name: "Editar Entrada, 09:00" })).toBeVisible();
 });
+
+test("depois da primeira visita, recarregar sem sinal abre a Hoje com as batidas do cache", async ({
+  page,
+  context,
+  browserName,
+}, testInfo) => {
+  test.skip(browserName !== "chromium", "Service worker offline coberto só no Chromium");
+  const email = `lia.prado+${Date.now()}.${testInfo.workerIndex}@example.com`;
+  await page.goto(await requestMagicLink(page, email));
+  await createCompany(page, "Bananal Ltda");
+
+  await page.getByRole("button", { name: /Bater ponto/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Bater ponto" });
+  await sheet.getByLabel("Hora").fill("08:30");
+  await sheet.getByRole("button", { name: "Salvar batida" }).click();
+  const batidas = page.getByRole("region", { name: "Batidas" });
+  await expect(batidas.getByRole("button", { name: "Editar Entrada, 08:30" })).toBeVisible();
+  await expect(page.getByText(/na fila/)).toBeHidden();
+
+  // Em string: o tsconfig do Playwright não tem os tipos do DOM.
+  await page.evaluate("navigator.serviceWorker.ready");
+  await context.setOffline(true);
+  await page.reload();
+
+  await expect(page.getByRole("region", { name: "Sem sinal na selva" })).toBeVisible();
+  await expect(batidas.getByRole("button", { name: "Editar Entrada, 08:30" })).toBeVisible();
+});
