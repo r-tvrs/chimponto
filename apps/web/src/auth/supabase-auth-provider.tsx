@@ -2,7 +2,13 @@ import { isAuthImplicitGrantRedirectError, type Session } from "@supabase/supaba
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { type Auth, AuthContext, type AuthState, type MagicLinkResult, type VerifyCodeResult } from "./auth";
+import {
+  type Auth,
+  AuthContext,
+  type AuthState,
+  type MagicLinkResult,
+  type VerifyCodeResult,
+} from "./auth";
 
 function stateFrom(session: Session | null, linkError: boolean): AuthState {
   return session
@@ -24,6 +30,13 @@ async function verifyCode(email: string, code: string): Promise<VerifyCodeResult
   if (!error) return "signed_in";
   // Código errado ou expirado: o GoTrue responde 403 (otp_expired) ou 400.
   return error.status === 403 || error.status === 400 ? "invalid" : "failed";
+}
+
+async function signInWithPassword(email: string, password: string): Promise<VerifyCodeResult> {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (!error) return "signed_in";
+  // E-mail ou senha errados: o GoTrue responde 400 (invalid_credentials) nos dois casos.
+  return error.status === 400 ? "invalid" : "failed";
 }
 
 /** Sessão do Supabase Auth: persistida pelo SDK, sobrevive a reabrir o app. */
@@ -60,6 +73,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       state,
       requestMagicLink,
       verifyCode,
+      signInWithPassword,
       signOut: async () => {
         // "local": sai só deste aparelho. Sem conexão, o SDK devolve erro nos dois casos:
         // - token de acesso válido: apaga a sessão mesmo assim;

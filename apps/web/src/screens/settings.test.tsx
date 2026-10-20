@@ -83,6 +83,7 @@ function FakeAuth({
     state,
     requestMagicLink: async () => "sent",
     verifyCode: async () => "signed_in",
+    signInWithPassword: async () => "signed_in",
     signOut: async () => {
       const result = pending.current.shift() ?? "signed_out";
       if (result === "signed_out") setState({ status: "signed_out", linkError: false });

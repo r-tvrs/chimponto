@@ -84,11 +84,18 @@ Detalhes da implementação (`apps/web/src/punches/`):
 - A lógica de classificação no trigger SQL deve espelhar `packages/domain` (por ordem de horário no dia) e ter teste equivalente.
 
 ### D5 — Autenticação
-- Supabase Auth: link mágico por e-mail e Google OAuth. Sem senha de login.
+- Supabase Auth: e-mail e senha, link mágico por e-mail e Google OAuth.
 - Senha do cofre é separada e nunca sai do navegador (ver `05-seguranca.md`).
 - Sessão gerenciada pelo SDK do Supabase.
 - Fluxo implícito (tokens no fragmento da URL), não PKCE: o link mágico entra mesmo aberto num navegador diferente do que o pediu.
 - O mesmo e-mail traz um código de 6 dígitos (`verifyOtp`, tipo `email`), digitado na tela de Login. No iOS, o app instalado na tela inicial não divide sessão com o navegador, e o link abre no navegador: o código é o caminho para entrar no app instalado. Template em `supabase/templates/magic-link.html` (local); em produção, o mesmo HTML nos templates "Magic Link" e "Confirm signup" do painel.
+- E-mail e senha (`signInWithPassword`): entra no app instalado sem depender de e-mail. O código depende de SMTP próprio, e o SMTP depende de domínio para entregar a colegas; sem domínio, a senha é o caminho. Erro de credencial não diz se errou o e-mail ou a senha.
+- Contas com senha são criadas pelo admin; ninguém se cadastra sozinho. Passo a passo:
+  1. Painel do Supabase → Authentication → Users → Add user → Create new user.
+  2. E-mail e senha do colega, com "Auto Confirm User" marcado. Nenhum e-mail é enviado.
+  3. Passar a senha ao colega por um canal privado.
+- Authentication → Sign In / Providers → desligar "Allow new users to sign up". Login por link e código continua para contas que já existem.
+- Sem troca de senha nem "esqueci a senha" por enquanto (o segundo depende de SMTP).
 
 ### D6 — Multiusuário
 - Todo usuário pertence a uma empresa (`company_members`, um por usuário na v1).

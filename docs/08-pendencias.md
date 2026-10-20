@@ -202,3 +202,10 @@ Vindas do #14 (login por código).
 - Depois do envio, o botão continua "Receber link mágico", embora o e-mail fale em código; é ele que serve para "pedir outro".
 - Login pelo código não validado num iPhone real (WebKit E2E só no CI). Sem E2E de código expirado nem de "pedir outro" após erro.
 - Refatorações (review do #14): fake de `Auth` copiado em 7 testes de tela (`verifyCode: async () => "signed_in"`), candidato a helper `fakeAuth(overrides)`; `login.tsx` junta pedir link e conferir código (9 `useState`, duas trilhas de erro), candidato a `CodeForm`; microcopy nova do login por código não conferida contra o handoff nem registrada em `docs/07`.
+
+Vindas do #16 (login por senha).
+
+- Qualquer 400 do GoTrue no login por senha vira "E-mail ou senha incorretos.", inclusive e-mail não confirmado ou `validation_failed`. Raro com conta criada com Auto Confirm. Correção prevista: mapear por `error.code` (`invalid_credentials`).
+- Com senha preenchida, o Enter do form entra com a senha; para pedir o link é preciso tocar "Receber link mágico" ou apagar a senha.
+- Microcopy e layout novos do login (campo "Senha (se o admin criou sua conta)", "Entrar com senha" como botão primário, link mágico em `outline`, "Sem senha? Mandamos…") não conferidos contra o handoff nem registrados em `docs/07`.
+- Refatorações (review do #16): `signInWithPassword` devolve `VerifyCodeResult`, candidato a `SignInResult`; `PASSWORD_FAILURE` repete a mensagem de `CODE_FAILURE`; validação de e-mail repetida em `onPasswordSignIn` e `onSubmit`; par `passwordResult`/`signingIn` espelha `codeResult`/`checking`; método novo em `Auth` exigiu editar os 7 fakes de teste (reforça `fakeAuth(overrides)`).

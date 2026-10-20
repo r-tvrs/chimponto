@@ -21,6 +21,8 @@ export type Auth = {
   requestMagicLink: (email: string) => Promise<MagicLinkResult>;
   /** Código de 6 dígitos do mesmo e-mail do link: entra sem sair do app instalado (iOS). */
   verifyCode: (email: string, code: string) => Promise<VerifyCodeResult>;
+  /** Conta criada pelo admin no painel do Supabase; `invalid` não diz se errou o e-mail ou a senha. */
+  signInWithPassword: (email: string, password: string) => Promise<VerifyCodeResult>;
   signOut: () => Promise<SignOutResult>;
 };
 

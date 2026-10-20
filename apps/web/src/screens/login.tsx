@@ -1,4 +1,4 @@
-import { LogIn, Mail } from "lucide-react";
+import { KeyRound, LogIn, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { type MagicLinkResult, useAuth, type VerifyCodeResult } from "@/auth/auth";
 import { ErrorState } from "@/components/error-state";
@@ -18,8 +18,13 @@ const CODE_FAILURE = {
   message: "Confira a conexão e tente de novo.",
 };
 
+const PASSWORD_FAILURE = {
+  title: "Não deu para entrar",
+  message: "Confira a conexão e tente de novo.",
+};
+
 export function LoginScreen() {
-  const { state, requestMagicLink, verifyCode } = useAuth();
+  const { state, requestMagicLink, verifyCode, signInWithPassword } = useAuth();
   const [linkErrorSeen, setLinkErrorSeen] = useState(false);
   const [email, setEmail] = useState("");
   const [invalid, setInvalid] = useState(false);
@@ -28,9 +33,28 @@ export function LoginScreen() {
   const [failure, setFailure] = useState<Exclude<MagicLinkResult, "sent"> | null>(null);
   const [code, setCode] = useState("");
   const [checking, setChecking] = useState(false);
-  const [codeResult, setCodeResult] = useState<Exclude<VerifyCodeResult, "signed_in"> | null>(
-    null,
-  );
+  const [codeResult, setCodeResult] = useState<Exclude<VerifyCodeResult, "signed_in"> | null>(null);
+
+  const [password, setPassword] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+  const [passwordResult, setPasswordResult] = useState<Exclude<
+    VerifyCodeResult,
+    "signed_in"
+  > | null>(null);
+
+  async function onPasswordSignIn() {
+    const address = email.trim();
+    if (!EMAIL_PATTERN.test(address)) {
+      setInvalid(true);
+      return;
+    }
+    setInvalid(false);
+    setPasswordResult(null);
+    setSigningIn(true);
+    const result = await signInWithPassword(address, password);
+    setSigningIn(false);
+    if (result !== "signed_in") setPasswordResult(result);
+  }
 
   async function send(address: string) {
     setFailure(null);
@@ -60,7 +84,9 @@ export function LoginScreen() {
       return;
     }
     setInvalid(false);
-    void send(address);
+    // "Ir" do teclado no iOS envia o form: com senha preenchida, entra com ela.
+    if (password) void onPasswordSignIn();
+    else void send(address);
   }
 
   if (state.status === "signed_out" && state.linkError && !linkErrorSeen) {
@@ -75,6 +101,10 @@ export function LoginScreen() {
 
   if (codeResult === "failed") {
     return <ErrorState {...CODE_FAILURE} onRetry={() => setCodeResult(null)} />;
+  }
+
+  if (passwordResult === "failed") {
+    return <ErrorState {...PASSWORD_FAILURE} onRetry={() => setPasswordResult(null)} />;
   }
 
   if (failure) {
@@ -107,7 +137,32 @@ export function LoginScreen() {
             Digite um e-mail válido.
           </p>
         )}
-        <Button type="submit" size="lg" className="w-full" disabled={sending}>
+        <Input
+          type="password"
+          aria-label="Senha"
+          placeholder="Senha (se o admin criou sua conta)"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-invalid={passwordResult === "invalid"}
+          aria-describedby={passwordResult === "invalid" ? "password-error" : undefined}
+        />
+        {passwordResult === "invalid" && (
+          <p id="password-error" className="text-[12.5px] font-bold text-negative">
+            E-mail ou senha incorretos.
+          </p>
+        )}
+        <Button
+          type="button"
+          size="lg"
+          className="w-full"
+          disabled={signingIn || !password}
+          onClick={() => void onPasswordSignIn()}
+        >
+          <KeyRound />
+          {signingIn ? "Entrando…" : "Entrar com senha"}
+        </Button>
+        <Button type="submit" size="lg" variant="outline" className="w-full" disabled={sending}>
           <Mail />
           {sending ? "Enviando…" : "Receber link mágico"}
         </Button>
@@ -117,7 +172,7 @@ export function LoginScreen() {
           </p>
         ) : (
           <p className="text-center text-xs leading-[1.4] font-medium text-muted-foreground">
-            Sem senha: mandamos um link que entra direto.
+            Sem senha? Mandamos um link que entra direto.
           </p>
         )}
       </form>

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createUserWithPassword } from "./admin";
 import { loginCodeFor } from "./mailpit";
 import { createCompany, requestMagicLink } from "./onboarding";
 
@@ -75,12 +76,28 @@ test("entra pelo código do e-mail, sem sair do app", async ({ page }, testInfo)
 
   const field = page.getByLabel("Código do e-mail");
   await field.fill(code === "000000" ? "111111" : "000000");
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(field).toHaveAccessibleDescription(
     "Código errado ou expirado. Confira ou peça outro.",
   );
 
   await field.fill(code);
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await createCompany(page, "Lumen Software");
+});
+
+test("entra com e-mail e senha de uma conta criada pelo admin", async ({ page }, testInfo) => {
+  const email = `senha+${Date.now()}.${testInfo.workerIndex}@example.com`;
+  await createUserWithPassword(email, "s3nha-forte");
+
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(email);
+  const password = page.getByLabel("Senha");
+  await password.fill("senha-errada");
+  await page.getByRole("button", { name: "Entrar com senha" }).click();
+  await expect(password).toHaveAccessibleDescription("E-mail ou senha incorretos.");
+
+  await password.fill("s3nha-forte");
+  await page.getByRole("button", { name: "Entrar com senha" }).click();
   await createCompany(page, "Lumen Software");
 });

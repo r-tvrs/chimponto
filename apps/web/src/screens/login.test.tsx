@@ -9,6 +9,7 @@ function renderLogin(overrides: Partial<Auth> = {}) {
     state: { status: "signed_out", linkError: false },
     requestMagicLink: vi.fn(async () => "sent" as const),
     verifyCode: vi.fn(async () => "signed_in" as const),
+    signInWithPassword: vi.fn(async () => "signed_in" as const),
     signOut: vi.fn(async () => "signed_out" as const),
     ...overrides,
   };
@@ -133,5 +134,52 @@ describe("<LoginScreen>", () => {
     await user.click(screen.getByRole("button", { name: "Entrar" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Não deu para conferir o código");
+  });
+
+  it("signs in with e-mail and password", async () => {
+    const auth = renderLogin();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("E-mail"), " marina@lumen.dev ");
+    await user.type(screen.getByLabelText("Senha"), "s3nha-forte");
+    await user.click(screen.getByRole("button", { name: "Entrar com senha" }));
+
+    expect(auth.signInWithPassword).toHaveBeenCalledWith("marina@lumen.dev", "s3nha-forte");
+    expect(auth.requestMagicLink).not.toHaveBeenCalled();
+  });
+
+  it("signs in with the password when Enter is pressed in the password field", async () => {
+    const auth = renderLogin();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("E-mail"), "marina@lumen.dev");
+    await user.type(screen.getByLabelText("Senha"), "s3nha-forte{Enter}");
+
+    expect(auth.signInWithPassword).toHaveBeenCalledWith("marina@lumen.dev", "s3nha-forte");
+    expect(auth.requestMagicLink).not.toHaveBeenCalled();
+  });
+
+  it("says the e-mail or password is wrong without telling which", async () => {
+    renderLogin({ signInWithPassword: vi.fn(async () => "invalid" as const) });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("E-mail"), "marina@lumen.dev");
+    await user.type(screen.getByLabelText("Senha"), "errada");
+    await user.click(screen.getByRole("button", { name: "Entrar com senha" }));
+
+    expect(await screen.findByLabelText("Senha")).toHaveAccessibleDescription(
+      "E-mail ou senha incorretos.",
+    );
+  });
+
+  it("shows the generic error when the password sign-in fails", async () => {
+    renderLogin({ signInWithPassword: vi.fn(async () => "failed" as const) });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("E-mail"), "marina@lumen.dev");
+    await user.type(screen.getByLabelText("Senha"), "s3nha-forte");
+    await user.click(screen.getByRole("button", { name: "Entrar com senha" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não deu para entrar");
   });
 });
