@@ -49,8 +49,9 @@ export function TodayScreen() {
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
   const photos = useRef(0);
 
-  /** Bater ponto abre a câmera traseira (docs/06); a foto nunca é obrigatória. */
   const openCamera = () => setSheet({ camera: true });
+  /** Bater ponto abre o registro manual; a foto do comprovante é opcional, pelo botão do sheet (docs/06). */
+  const openPunch = () => setSheet({ n: ++photos.current });
 
   if (punches.isError) {
     return (
@@ -95,14 +96,14 @@ export function TodayScreen() {
             slots={slots}
             forecast={summary.forecast}
             onEdit={(punch) => setSheet({ editing: punch })}
-            onPunch={openCamera}
+            onPunch={openPunch}
           />
           <DayTiles summary={summary} />
           <PeriodTile rules={rules} now={now} />
         </>
       )}
 
-      <PunchCta summary={summary} done={done} total={slots.length} onPunch={openCamera} />
+      <PunchCta summary={summary} done={done} total={slots.length} onPunch={openPunch} />
 
       {sheet &&
         ("camera" in sheet ? (

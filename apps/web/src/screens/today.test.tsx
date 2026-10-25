@@ -172,24 +172,18 @@ async function rows() {
     .map((row) => row.getAttribute("aria-label"));
 }
 
-/** Abre a câmera pelo CTA, que só habilita depois de carregar as batidas e a fila. */
-async function openCamera(user: ReturnType<typeof userEvent.setup>) {
+/** Abre o sheet manual pelo CTA, que só habilita depois de carregar as batidas e a fila. */
+async function openPunchSheet(user: ReturnType<typeof userEvent.setup>) {
   const cta = await screen.findByRole("button", { name: /Bater ponto/ });
   await vi.waitFor(() => expect(cta).toBeEnabled());
   await user.click(cta);
-}
-
-/** Sai da câmera pelo "Registrar manualmente". */
-async function cancelCamera() {
-  const sheet = await screen.findByRole("dialog", { name: "Foto do comprovante" });
-  fireEvent.click(within(sheet).getByRole("button", { name: "Registrar manualmente" }));
   await screen.findByRole("dialog", { name: "Bater ponto" });
 }
 
-/** Abre o sheet manual: CTA abre a câmera, e cancelar cai no registro manual. */
-async function openPunchSheet(user: ReturnType<typeof userEvent.setup>) {
-  await openCamera(user);
-  await cancelCamera();
+/** Abre a câmera pelo botão de foto do sheet manual. */
+async function openCamera(user: ReturnType<typeof userEvent.setup>) {
+  await openPunchSheet(user);
+  await user.click(screen.getByRole("button", { name: "Usar foto do comprovante" }));
 }
 
 /** Tira a "foto" do comprovante, com o texto que o OCR vai ler. */
@@ -347,9 +341,7 @@ describe("Próximo card", () => {
     );
 
     await user.click(await screen.findByRole("button", { name: /Dia completo · 4 de 4 batidas/ }));
-    await cancelCamera();
-
-    const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
+    const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
     expect(sheet).toHaveTextContent("Vai entrar como saída extra");
   });
 });
@@ -518,9 +510,7 @@ describe("Bater ponto sheet", () => {
     const user = renderToday(fakePunches([punch("09:02")]));
 
     await user.click(await screen.findByRole("button", { name: "Bater Saída" }));
-    await cancelCamera();
-
-    const sheet = screen.getByRole("dialog", { name: "Bater ponto" });
+    const sheet = await screen.findByRole("dialog", { name: "Bater ponto" });
     expect(within(sheet).getByLabelText("Hora")).toHaveValue("14:28");
     expect(sheet).toHaveTextContent("Vai entrar como saída para o almoço");
   });
